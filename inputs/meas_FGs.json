@@ -1,0 +1,13 @@
+{
+    "nC": {
+	"tier1": ["alkane CH","carboxylic acid","ketone","aldehyde","ester","alcohol"],
+	"tier2": ["organonitrate","phenol","alkene CH","aromatic CH"]
+    },
+    "lambdaC": {
+	"set1": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol"],
+	"set2": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate"],
+	"collapse": {
+	"carbonyl": ["ketone", "aldehyde", "ester"]
+	}
+    }
+}

@@ -4,23 +4,23 @@ library(limSolve)
 
 ## y is 1-D
 
-lsq <- function(x, arg.A, arg.b)
+Lsq <- function(x, arg.A, arg.b)
   crossprod(arg.A %*% x - arg.b)
 
-boundedls <- function(y, X, bl=NULL, bu=NULL, tol=.Machine$double.eps) {
+BoundedLsq <- function(y, X, bl=NULL, bu=NULL, tol=.Machine$double.eps) {
   theta <- limSolve::nnls(X, y)
   init <- pmax(0L, pmin(theta$X, 1L))
   if(is.null(bl) && is.null(bu)) {
-    DBind[G, H] <- buildconstr(X, bl=init-tol)
+    DBind[G, H] <- BuildConstr(X, bl=init-tol)
   } else {
-    DBind[G, H] <- buildconstr(X, bl, bu)
+    DBind[G, H] <- BuildConstr(X, bl, bu)
   }
-  out <- try(constrOptim(init, lsq, NULL, ui=G, ci=H, arg.A=X, arg.b=y), TRUE)
+  out <- try(constrOptim(init, Lsq, NULL, ui=G, ci=H, arg.A=X, arg.b=y), TRUE)
   if(inherits(out, "try-error")) browser()
   setNames(out$par, colnames(X))
 }
 
-buildconstr <- function(X, bl=0, bu=1, tol=with(.Machine, c(double.neg.eps, double.eps))) {
+BuildConstr <- function(X, bl=0, bu=1, tol=with(.Machine, c(double.neg.eps, double.eps))) {
   if(length(bl)==1) bl <- rep(bl-tol[1], ncol(X))
   if(length(bu)==1) bu <- rep(bu+tol[2], ncol(X))
   G <- rbind(diag(ncol(X)), -diag(ncol(X)))
@@ -32,11 +32,11 @@ buildconstr <- function(X, bl=0, bu=1, tol=with(.Machine, c(double.neg.eps, doub
 
 ## Y is 2-D
 
-lsq2 <- function(x, arg.A, arg.B, arg.dim) {
+Lsq2 <- function(x, arg.A, arg.B, arg.dim) {
   norm(arg.B - arg.A %*% matrix(x, arg.dim[1], arg.dim[2]), "F")
 }
 
-buildconstr2 <- function(dim., bl=0, bu=1, tol=with(.Machine, c(double.neg.eps, double.eps))) {
+BuildConstr2 <- function(dim., bl=0, bu=1, tol=with(.Machine, c(double.neg.eps, double.eps))) {
   nrow. <- dim.[1]
   ncol. <- dim.[2]
   if (length(bl) == 1)
@@ -44,20 +44,20 @@ buildconstr2 <- function(dim., bl=0, bu=1, tol=with(.Machine, c(double.neg.eps, 
   if (length(bu) == 1)
     bu <- rep(bu + tol[2], nrow.)
   ##
-  unitrow <- function(i, X) {
+  Unitrow <- function(i, X) {
     X[i, ] <- 1
     X
   }
   zeros <- matrix(0, nrow., ncol.)
   ##
-  V <- t(sapply(seq(nrow.), unitrow, zeros))
+  V <- t(sapply(seq(nrow.), Unitrow, zeros))
   G <- rbind(V, -V)
   H <- c(bl, -bu)
   ##
   list(G=G, H=H)
 }
 
-boundedls2 <- function (X, Y, bl = 0, bu = 1, init=0, ...) {
+BoundedLsq2 <- function (X, Y, bl = 0, bu = 1, init=0, ...) {
   dim. <- c(ncol(X), ncol(Y))
   dimnames. <- list(colnames(X), colnames(Y))
   n <- prod(dim.)
@@ -77,8 +77,8 @@ boundedls2 <- function (X, Y, bl = 0, bu = 1, init=0, ...) {
     init <- rep(init, n)
   }
   ##
-  DBind[G, H] <- buildconstr2(dim., bl, bu)
-  out <- try(constrOptim(init, lsq2, NULL,
+  DBind[G, H] <- BuildConstr2(dim., bl, bu)
+  out <- try(constrOptim(init, Lsq2, NULL,
                          ui = G, ci = H,
                          ...,
                          arg.A = X,
