@@ -15,8 +15,8 @@ File <- function(x, path="data", prefix="merged")
 
 inpfiles <- c(
   "fulltable"=File("MCMGroups_atomfulltable.csv"),
-  "adjacent"=File("adjacent_atoms.csv"),
-  "OSc"=File("Osc_atomfulltable.csv")
+  "adjacent"=File("adjacent_atoms.csv")
+  ## "OSc"=File("Osc_atomfulltable.csv")
 )
 
 outfiles <- c(
@@ -27,7 +27,7 @@ outfiles <- c(
 
 fulltable <- read.csv(inpfiles["fulltable"])
 adjtable <- read.csv(inpfiles["adjacent"])
-osctable <- read.csv(inpfiles["OSc"])
+## osctable <- read.csv(inpfiles["OSc"])
 
 ## -----------------------------------------------------------------------------
 
@@ -61,7 +61,8 @@ carbon.attr <- full_join(
 
 carbon.attr <- full_join(
   carbon.attr,
-  AtomOSc(osctable)
+  ## AtomOSc(osctable)
+  AtomOSc(adjtable)
 )
 
 ## -----------------------------------------------------------------------------

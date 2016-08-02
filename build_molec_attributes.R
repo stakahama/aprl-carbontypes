@@ -18,7 +18,8 @@ File <- function(x, path="data", prefix="merged")
 inpfiles <- c(
   "mass"=file.path("data-raw", "^mcm_.+_mass\\.txt$"),
   "simpol"=File("SIMPOLgroups.csv"),
-  "OSc"=File("OSc_atomfulltable.csv")
+  ## "OSc"=File("OSc_atomfulltable.csv")
+  "adjacent"=File("adjacent_atoms.csv")
 )
 
 outfiles <- c(
@@ -33,7 +34,8 @@ ReadMassfile <- function(x)
 
 ## -----------------------------------------------------------------------------
 
-oscgr <- read.csv(inpfiles["OSc"])
+## oscgr <- read.csv(inpfiles["OSc"])
+adjacent <- read.csv(inpfiles["adjacent"])
 simpgr <- as.matrix(read.csv(inpfiles["simpol"], row.names=1))
 
 massfiles <- list.files(dirname(inpfiles["mass"]), basename(inpfiles["mass"]),
@@ -53,7 +55,7 @@ masses <- masses %>%
 ## -----------------------------------------------------------------------------
 
 masses <- full_join(masses %>% select(compound, SMILES, MW, logC0),
-                   MolecOSc(oscgr))
+                   MolecOSc(adjacent))
 
 ## -----------------------------------------------------------------------------
 
