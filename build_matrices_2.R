@@ -6,10 +6,10 @@ library(dplyr)
 library(reshape2)
 library(Rfunctools)
 
+## -----------------------------------------------------------------------------
+
 File <- function(x, path="data", prefix="merged")
   file.path(path, paste(prefix, x, sep="_"))
-
-## -----------------------------------------------------------------------------
 
 inpfiles <- c(
   "groupattr"=File("group_attributes.csv"),

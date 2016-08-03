@@ -10,10 +10,10 @@ simpol <- simpolclass$new()
 
 PopulateEnv("mylib", "lib/lib_OSc.R")
 
+## -----------------------------------------------------------------------------
+
 File <- function(x, path="data", prefix="merged")
   file.path(path, paste(prefix, x, sep="_"))
-
-## -----------------------------------------------------------------------------
 
 inpfiles <- c(
   "mass"=file.path("data-raw", "^mcm_.+_mass\\.txt$"),

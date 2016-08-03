@@ -8,10 +8,10 @@ library(Rfunctools)
 library(pryr)
 PopulateEnv("mylib", "lib/lib_C_attributes.R")
 
+## -----------------------------------------------------------------------------
+
 File <- function(x, path="data", prefix="merged")
   file.path(path, paste(prefix, x, sep="_"))
-
-## -----------------------------------------------------------------------------
 
 inpfiles <- c(
   "fulltable"=File("MCMGroups_atomfulltable.csv")

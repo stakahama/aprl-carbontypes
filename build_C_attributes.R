@@ -6,12 +6,13 @@ library(dplyr)
 library(reshape2)
 library(Rfunctools)
 library(pryr)
+PopulateEnv("IO", "config.R")
 PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSc.R"))
+
+## -----------------------------------------------------------------------------
 
 File <- function(x, path="data", prefix="merged")
   file.path(path, paste(prefix, x, sep="_"))
-
-## -----------------------------------------------------------------------------
 
 inpfiles <- c(
   "fulltable"=File("MCMGroups_atomfulltable.csv"),
@@ -25,9 +26,11 @@ outfiles <- c(
 
 ## -----------------------------------------------------------------------------
 
-fulltable <- read.csv(inpfiles["fulltable"])
-adjtable <- read.csv(inpfiles["adjacent"])
-## osctable <- read.csv(inpfiles["OSc"])
+## fulltable <- read.csv(inpfiles["fulltable"])
+## adjtable <- read.csv(inpfiles["adjacent"])
+## ## osctable <- read.csv(inpfiles["OSc"])
+fulltable <- Import("fulltable")
+adjtable <- Import("adjacent")
 
 ## -----------------------------------------------------------------------------
 

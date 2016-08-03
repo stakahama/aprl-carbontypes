@@ -1,4 +1,6 @@
 
+options(stringsAsFactors=FALSE)
+
 library(plyr)
 library(dplyr)
 library(reshape2)
@@ -6,7 +8,9 @@ library(Rfunctools)
 library(RJSONIO)
 library(ggplot2)
 theme_set(theme_bw())
-PopulateEnv("mylib", "lib/lib_constrOptim.R")
+PopulateEnv("mylib", c("lib/lib_collapse.R", "lib/lib_constrOptim.R"))
+
+## -----------------------------------------------------------------------------
 
 AddPrefix <- function(x, prefix="merged")
   paste(prefix, x, sep="_")
@@ -18,7 +22,8 @@ OutFile <- function(x, ext=NULL, path="outputs", prefix="lambdaC")
 inpfiles <- c(
   "molecattr"=file.path("data", AddPrefix("molec_attributes.csv")),
   "matrices"=file.path("data", AddPrefix("matrices.rda")),
-  "meas"=file.path("inputs", "meas_FGs.json")
+  "meas"=file.path("inputs", "meas_FGs.json"),
+  "svoc"=file.path("inputs", "SVOCs.json")
 )
 
 outfiles <- list(
@@ -30,44 +35,6 @@ outfiles <- list(
 )
 
 ## -----------------------------------------------------------------------------
-
-Radicalgroups <- function(X)
-  rownames(X)[apply(X[,grepl("radical", colnames(X))] > 0, 1, any)]
-
-AggGroups <- function(agg, meas, matrices) {
-
-  newmatrices <- matrices
-  newmeas <- list()
-  for(new in names(agg)) {
-    ##
-    DBind[X, Y, Theta, gamma] <- newmatrices
-    ##
-    target <- agg[[new]]
-    groups <- colnames(Theta)
-    rest <- setdiff(groups, target)
-    ##
-    Theta <- cbind(Theta[,rest,drop=FALSE], rowSums(Theta[,target,drop=FALSE]))
-    colnames(Theta) <- c(rest, new)
-    ##
-    gamma <- c(gamma[rest], mean(gamma[target]))
-    names(gamma) <- c(rest, new)
-    ##
-    X <- sweep(Y %*% Theta, 2, gamma, `*`)
-    ##
-    newmatrices <- list(X=X, Y=Y, Theta=Theta, gamma=gamma)
-    ##
-  }
-  for(set in names(meas)) {
-    newset <- paste(sep="_", set, "collapsed")
-    newvars <- meas[[set]]
-    for(new in names(agg))
-      newvars <- c(setdiff(newvars, agg[[new]]), new)
-    newmeas[[newset]] <- intersect(colnames(X), newvars)
-  }
-
-  list(matrices=newmatrices, meas=newmeas)
-
-}
 
 CountMethod <- function(ni=1, nC, Theta, Y, gamma) {
   if(length(ni)==1)
@@ -82,15 +49,14 @@ matrices <- ReadRDA(inpfiles["matrices"])
 molec.attr <- read.csv(inpfiles["molecattr"])
 
 measlist <- fromJSON(inpfiles["meas"])$lambdaC
+collapserule <- fromJSON(inpfiles["meas"])$collapse
+
+svoc <- fromJSON(inpfiles["svoc"])$compounds
 
 ## -----------------------------------------------------------------------------
 
-DBind[matrices.collapsed, measlist.collapsed] <-
-  AggGroups(measlist[["collapse"]],
-            measlist[grep("set", names(measlist), value=TRUE)],
-            matrices)
-
-measlist[["collapse"]] <- NULL
+DBind[measlist.collapsed, matrices.collapsed] <-
+  AggGroups(collapserule, measlist, matrices)
 
 ## -----------------------------------------------------------------------------
 
@@ -101,9 +67,6 @@ for(elem in loopvars) {
 
   DBind[X, Y, Theta, gamma] <- get(elem[1])
   measlist <- get(elem[2])
-
-  svoc <- setdiff(with(arrange(molec.attr, logC0), compound[round(logC0) <= 3]),
-                  Radicalgroups(X))
 
   for(.label in names(measlist)) {
 
