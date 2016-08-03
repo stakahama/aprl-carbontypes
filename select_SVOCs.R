@@ -4,28 +4,14 @@ options(stringsAsFactors=FALSE)
 library(dplyr)
 library(Rfunctools)
 library(RJSONIO)
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("mylib", "lib/lib_collapse.R")
 
 ## -----------------------------------------------------------------------------
 
-AddPrefix <- function(x, prefix="merged")
-  paste(prefix, x, sep="_")
+DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
 
-inpfiles <- c(
-  "molecattr"=file.path("data", AddPrefix("molec_attributes.csv")),
-  "matrices"=file.path("data", AddPrefix("matrices.rda"))
-)
-
-outfiles <- c(
-  "svoc"=file.path("inputs", "SVOCs.json"),
-  "clabels"=file.path("inputs", "clabels.json")
-)
-
-## -----------------------------------------------------------------------------
-
-DBind[X, Y, Theta, gamma] <- ReadRDA(inpfiles["matrices"])
-
-molec.attr <- read.csv(inpfiles["molecattr"])
+molec.attr <- ReadFile("molecattr")
 
 ## -----------------------------------------------------------------------------
 
@@ -51,6 +37,6 @@ clabels <- with(list(sk=out$ctypes, rest=setdiff(rownames(Theta), out$ctypes)),
 
 ## -----------------------------------------------------------------------------
 
-cat(toJSON(out), file=outfiles["svoc"])
+cat(toJSON(out), file=FilePath("svoc"))
 
-cat(toJSON(clabels), file=outfiles["clabels"])
+cat(toJSON(clabels), file=FilePath("clabels"))

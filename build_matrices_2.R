@@ -5,20 +5,7 @@ library(plyr)
 library(dplyr)
 library(reshape2)
 library(Rfunctools)
-
-## -----------------------------------------------------------------------------
-
-File <- function(x, path="data", prefix="merged")
-  file.path(path, paste(prefix, x, sep="_"))
-
-inpfiles <- c(
-  "groupattr"=File("group_attributes.csv"),
-  "matrices"=File("matrices.rda")
-)
-
-outfiles <- c(
-  "matrices"=File("matrices_2.rda")
-)
+PopulateEnv("IO", "config_IO.R")
 
 ## -----------------------------------------------------------------------------
 
@@ -26,9 +13,9 @@ FillNA <- function(x, value=0) replace(x, is.na(x), value)
 
 ## -----------------------------------------------------------------------------
 
-group.attr <- read.csv(inpfiles["groupattr"])
+group.attr <- ReadFile("groupattr")
 
-mat <- ReadRDA(inpfiles["matrices"])
+mat <- ReadFile("matrices")
 
 ## -----------------------------------------------------------------------------
 
@@ -42,4 +29,4 @@ stopifnot(identical(mat$gamma, gamma2))
 
 ## -----------------------------------------------------------------------------
 
-save(zFG, Lambda, file=outfiles["matrices"])
+save(zFG, Lambda, file=FilePath("matrices"))

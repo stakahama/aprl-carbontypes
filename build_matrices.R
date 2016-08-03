@@ -6,24 +6,12 @@ library(dplyr)
 library(reshape2)
 library(Rfunctools)
 library(pryr)
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("mylib", "lib/lib_C_attributes.R")
 
 ## -----------------------------------------------------------------------------
 
-File <- function(x, path="data", prefix="merged")
-  file.path(path, paste(prefix, x, sep="_"))
-
-inpfiles <- c(
-  "fulltable"=File("MCMGroups_atomfulltable.csv")
-)
-
-outfiles <- c(
-  "matrices"=File("matrices.rda")
-)
-
-## -----------------------------------------------------------------------------
-
-fulltable <- read.csv(inpfiles["fulltable"])
+fulltable <- ReadFile("fulltable")
 
 ## -----------------------------------------------------------------------------
 
@@ -59,4 +47,4 @@ gamma <- with(df.gamma, setNames(1/n, group))[colnames(X)]
 
 ## -----------------------------------------------------------------------------
 
-save(X, Y, Theta, gamma, file=outfiles["matrices"])
+save(X, Y, Theta, gamma, file=FilePath("matrices"))

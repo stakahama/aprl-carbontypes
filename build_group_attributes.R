@@ -5,26 +5,13 @@ library(dplyr)
 library(reshape2)
 library(Rfunctools)
 library(pryr)
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSc.R"))
 
 ## -----------------------------------------------------------------------------
 
-File <- function(x, path="data", prefix="merged")
-  file.path(path, paste(prefix, x, sep="_"))
-
-inpfiles <- c(
-  "fulltable"=File("MCMGroups_atomfulltable.csv"),
-  "adjacent"=File("adjacent_atoms.csv")
-)
-
-outfiles <- c(
-  "groupattr"=File("group_attributes.csv")
-)
-
-## -----------------------------------------------------------------------------
-
-fulltable <- read.csv(inpfiles["fulltable"])
-adjtable <- read.csv(inpfiles["adjacent"])
+fulltable <- ReadFile("fulltable")
+adjtable <- ReadFile("adjacent")
 
 ## -----------------------------------------------------------------------------
 
@@ -54,4 +41,4 @@ group.attr <- full_join(numatoms.wf, bonded.uniq)
 
 ## -----------------------------------------------------------------------------
 
-write.csv(group.attr, outfiles["groupattr"], na="", row.names=FALSE)
+write.csv(group.attr, FilePath("groupattr"), na="", row.names=FALSE)

@@ -11,42 +11,21 @@ library(RJSONIO)
 library(pryr)
 library(ggplot2)
 theme_set(theme_bw())
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_collapse.R"))
 
 ## -----------------------------------------------------------------------------
 
-AddPrefix <- function(x, prefix="merged")
-  paste(prefix, x, sep="_")
+DBind[svoc, sk, sj] <- ReadFile("svoc")
 
-Example <- partial(AddPrefix, prefix="apinene")
+DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
 
-inpfiles <- c(
-  "tseries_gas"=file.path("inputs", Example("formatted.csv")),
-  "tseries_aer"=file.path("inputs", Example("aer_formatted.csv")),
-  "carbonattr"=file.path("data", AddPrefix("C_attributes.csv")),
-  "svoc"=file.path("inputs", "SVOCs.json"),
-  "clabels"=file.path("inputs", "clabels.json"),
-  "matrices"=file.path("data", AddPrefix("matrices.rda"))
-)
-
-outfiles <- c(
-  "plot_ctype_tseries"=file.path("outputs", Example("ctype_tseries.pdf")),
-  "plot_OSc_tseries"=file.path("outputs", Example("OSc_tseries.pdf")),
-  "plot_compound_abundance"=file.path("outputs", Example("compound_abundance.pdf"))
-)
-
-## -----------------------------------------------------------------------------
-
-DBind[svoc, sk, sj] <- fromJSON(inpfiles["svoc"])
-
-DBind[X, Y, Theta, gamma] <- ReadRDA(inpfiles["matrices"])
-
-moles.molec <- lapply(setNames(inpfiles[c("tseries_gas", "tseries_aer")], c("gas", "aer")),
+moles.molec <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
                       ReadTSeries)
 
-clabels <- fromJSON(inpfiles["clabels"])
+clabels <- ReadFile("clabels")
 
-carbon.attr <- read.csv(inpfiles["carbonattr"])
+carbon.attr <- ReadFile("carbonattr")
 
 ## -----------------------------------------------------------------------------
 
@@ -101,7 +80,7 @@ ggp <- ggplot(frac.lf)+
   scale_x_continuous(expand=c(0, 0))+
   scale_y_continuous(expand=c(0, 0))
 
-pdf(outfiles["plot_ctype_tseries"], width=10, height=7)
+pdf(FilePath("plot_ctype_tseries"), width=10, height=7)
 print(ggp)
 dev.off()
 
@@ -128,7 +107,7 @@ ggp <- ggplot(osc.lf %>% mutate(OSc=factor(OSc, levs)))+
   scale_x_continuous(expand=c(0, 0))+
   scale_y_continuous(expand=c(0, 0))
 
-pdf(outfiles["plot_OSc_tseries"], width=10, height=7)
+pdf(FilePath("plot_OSc_tseries"), width=10, height=7)
 print(ggp)
 dev.off()
 
@@ -153,7 +132,7 @@ ggp <- ggplot(example.subset) +
   geom_bar(aes(compound, nC, fill=clabel), stat="identity")+
   theme(axis.text.x=element_text(angle=60, hjust=1))
 
-pdf(outfiles["plot_compound_abundance"], width=10, height=7)
+pdf(FilePath("plot_compound_abundance"), width=10, height=7)
 print(ggp)
 dev.off()
 

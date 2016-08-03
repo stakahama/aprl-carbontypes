@@ -6,24 +6,12 @@ library(dplyr)
 library(reshape2)
 library(Rfunctools)
 
-File <- function(x, path="data", prefix="merged")
-  file.path(path, paste(prefix, x, sep="_"))
-
 ## -----------------------------------------------------------------------------
 
-inpfiles <- c(
-  "groupattr"=File("group_attributes.csv"),
-  "matrices"=File("matrices.rda"),
-  "matrices_2"=File("matrices_2.rda"),
-  "carbonattr"=File("C_attributes.csv")
-)
+load(FilePath("matrices"))
+load(FilePath("matrices_2"))
 
-## -----------------------------------------------------------------------------
-
-load(inpfiles["matrices"])
-load(inpfiles["matrices_2"])
-
-carbon.attr <- read.csv(inpfiles["carbonattr"])
+carbon.attr <- ReadFile("carbonattr")
 
 ## -----------------------------------------------------------------------------
 

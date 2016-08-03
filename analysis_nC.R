@@ -8,37 +8,18 @@ library(Rfunctools)
 library(RJSONIO)
 library(ggplot2)
 theme_set(theme_bw())
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("mylib", "lib/lib_collapse.R")
 
 ## -----------------------------------------------------------------------------
 
-AddPrefix <- function(x, prefix="merged")
-  paste(prefix, x, sep="_")
+DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
 
-OutFile <- function(x, ext=NULL, path="outputs", prefix="nC")
-  function(suffix=NULL)
-    file.path(path, paste(sep=".", paste(sep="_", prefix, x, suffix), ext))
+molec.attr <- ReadFile("molecattr")
 
-inpfiles <- c(
-  "molecattr"=file.path("data", AddPrefix("molec_attributes.csv")),
-  "matrices"=file.path("data", AddPrefix("matrices.rda")),
-  "meas"=file.path("inputs", "meas_FGs.json"),
-  "svoc"=file.path("inputs", "SVOCs.json")
-)
+measlist <- ReadFile("meas")$lambdaC
 
-outfiles <- list(
-  "plot_compound_nC"=OutFile("nC", "pdf")
-)
-
-## -----------------------------------------------------------------------------
-
-DBind[X, Y, Theta, gamma] <- ReadRDA(inpfiles["matrices"])
-
-molec.attr <- read.csv(inpfiles["molecattr"])
-
-measlist <- fromJSON(inpfiles["meas"])$lambdaC
-
-svoc <- fromJSON(inpfiles["svoc"])$compounds
+svoc <- ReadFile("svoc")$compounds
 
 ## -----------------------------------------------------------------------------
 
@@ -74,7 +55,7 @@ for(.label in names(measlist)) {
     labs(x=expression(n[C]), y=expression(n[C]*"*"))+
     geom_abline(intercept=0, slope=1)
 
-  pdf(outfiles[["plot_compound_nC"]](.label))
+  pdf(SprintF("plot_compound_nC", .label))
   print(ggp)
   dev.off()
 

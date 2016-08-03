@@ -6,31 +6,13 @@ library(dplyr)
 library(reshape2)
 library(Rfunctools)
 library(pryr)
-PopulateEnv("IO", "config.R")
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSc.R"))
 
 ## -----------------------------------------------------------------------------
 
-File <- function(x, path="data", prefix="merged")
-  file.path(path, paste(prefix, x, sep="_"))
-
-inpfiles <- c(
-  "fulltable"=File("MCMGroups_atomfulltable.csv"),
-  "adjacent"=File("adjacent_atoms.csv")
-  ## "OSc"=File("Osc_atomfulltable.csv")
-)
-
-outfiles <- c(
-  "carbonattr"=File("C_attributes.csv")
-)
-
-## -----------------------------------------------------------------------------
-
-## fulltable <- read.csv(inpfiles["fulltable"])
-## adjtable <- read.csv(inpfiles["adjacent"])
-## ## osctable <- read.csv(inpfiles["OSc"])
-fulltable <- Import("fulltable")
-adjtable <- Import("adjacent")
+fulltable <- ReadFile("fulltable")
+adjtable <- ReadFile("adjacent")
 
 ## -----------------------------------------------------------------------------
 
@@ -70,4 +52,4 @@ carbon.attr <- full_join(
 
 ## -----------------------------------------------------------------------------
 
-write.csv(carbon.attr, outfiles["carbonattr"], row.names=FALSE)
+write.csv(carbon.attr, FilePath("carbonattr"), row.names=FALSE)

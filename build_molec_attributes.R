@@ -8,23 +8,8 @@ library(Rfunctools)
 source("lib/lib_simpol.R")
 simpol <- simpolclass$new()
 
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("mylib", "lib/lib_OSc.R")
-
-## -----------------------------------------------------------------------------
-
-File <- function(x, path="data", prefix="merged")
-  file.path(path, paste(prefix, x, sep="_"))
-
-inpfiles <- c(
-  "mass"=file.path("data-raw", "^mcm_.+_mass\\.txt$"),
-  "simpol"=File("SIMPOLgroups.csv"),
-  ## "OSc"=File("OSc_atomfulltable.csv")
-  "adjacent"=File("adjacent_atoms.csv")
-)
-
-outfiles <- c(
-  "molecattr"=File("molec_attributes.csv")
-)
 
 ## -----------------------------------------------------------------------------
 
@@ -34,12 +19,11 @@ ReadMassfile <- function(x)
 
 ## -----------------------------------------------------------------------------
 
-## oscgr <- read.csv(inpfiles["OSc"])
-adjacent <- read.csv(inpfiles["adjacent"])
-simpgr <- as.matrix(read.csv(inpfiles["simpol"], row.names=1))
+adjacent <- ReadFile("adjacent")
+simpgr <- ReadFile("simpol")
 
-massfiles <- list.files(dirname(inpfiles["mass"]), basename(inpfiles["mass"]),
-                        full.name=TRUE)
+massfiles <- list.files(dirname(FilePath("mcmmass")), basename(FilePath("mcmmass")),
+                        full.names=TRUE)
 masses <- unique(ldply(massfiles, ReadMassfile))
 row.names(masses) <- masses$compound
 
@@ -59,4 +43,4 @@ masses <- full_join(masses %>% select(compound, SMILES, MW, logC0),
 
 ## -----------------------------------------------------------------------------
 
-write.csv(masses, file=outfiles["molecattr"], row.names=FALSE)
+write.csv(masses, file=FilePath("molecattr"), row.names=FALSE)

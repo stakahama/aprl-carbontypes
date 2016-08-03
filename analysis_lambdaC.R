@@ -8,31 +8,8 @@ library(Rfunctools)
 library(RJSONIO)
 library(ggplot2)
 theme_set(theme_bw())
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("mylib", c("lib/lib_collapse.R", "lib/lib_constrOptim.R"))
-
-## -----------------------------------------------------------------------------
-
-AddPrefix <- function(x, prefix="merged")
-  paste(prefix, x, sep="_")
-
-OutFile <- function(x, ext=NULL, path="outputs", prefix="lambdaC")
-  function(suffix=NULL)
-    file.path(path, paste(sep=".", paste(sep="_", prefix, x, suffix), ext))
-
-inpfiles <- c(
-  "molecattr"=file.path("data", AddPrefix("molec_attributes.csv")),
-  "matrices"=file.path("data", AddPrefix("matrices.rda")),
-  "meas"=file.path("inputs", "meas_FGs.json"),
-  "svoc"=file.path("inputs", "SVOCs.json")
-)
-
-outfiles <- list(
-  "plot_ctype"=OutFile("ctype", "pdf"),
-  "plot_nC"=OutFile("nC", "pdf"),
-  "Phi"=OutFile("Phi", "rds"),
-  "values"=OutFile("values", "csv"),
-  "lmfit"=OutFile("lmfit", "rds")
-)
 
 ## -----------------------------------------------------------------------------
 
@@ -44,14 +21,14 @@ CountMethod <- function(ni=1, nC, Theta, Y, gamma) {
 
 ## -----------------------------------------------------------------------------
 
-matrices <- ReadRDA(inpfiles["matrices"])
+matrices <- ReadFile("matrices")
 
-molec.attr <- read.csv(inpfiles["molecattr"])
+molec.attr <- ReadFile("molecattr")
 
-measlist <- fromJSON(inpfiles["meas"])$lambdaC
-collapserule <- fromJSON(inpfiles["meas"])$collapse
+DBind[measlist, collapserule] <-
+  ReadFile("meas")[c("lambdaC", "collapse")]
 
-svoc <- fromJSON(inpfiles["svoc"])$compounds
+svoc <- ReadFile("svoc")$compounds
 
 ## -----------------------------------------------------------------------------
 
@@ -124,7 +101,7 @@ for(elem in loopvars) {
       guides(color=FALSE)+
       geom_blank(aes(lim, lim), data=limits)
 
-    pdf(outfiles[["plot_ctype"]](.label), width=12, height=5)
+    pdf(SprintF("plot_ctype_fit", .label), width=12, height=5)
     print(ggp)
     dev.off()
 
@@ -146,7 +123,7 @@ for(elem in loopvars) {
       geom_abline(intercept=0, slope=1)+
       geom_blank(aes(lim, lim), data=limits)
 
-    pdf(outfiles[["plot_nC"]](.label))
+    pdf(SprintF("plot_nC_fit", .label))
     print(ggp)
     dev.off()
 
@@ -154,10 +131,10 @@ for(elem in loopvars) {
 
     ## export values
 
-    saveRDS(Phi, file=outfiles[["Phi"]](.label))
+    saveRDS(Phi, file=SprintF("Phi", .label))
 
     write.csv(ResetIndex(as.data.frame(lambdaC.mat), "method"),
-              outfiles[["values"]](.label), row.names=FALSE)
+              SprintF("lambdaC", .label), row.names=FALSE)
 
 
     ## -----------------------------------------------------------------------------
@@ -165,7 +142,7 @@ for(elem in loopvars) {
     ## lm for confidence intervals
 
     fit.lm <- lm(y~X-1, data=list(y=rowSums(Y.s), X=X.s))
-    saveRDS(fit.lm, file=outfiles[["lmfit"]](.label))
+    saveRDS(fit.lm, file=SprintF("lmfit", .label))
 
   }
 
