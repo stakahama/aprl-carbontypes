@@ -32,7 +32,7 @@ clabels <- with(list(sk=out$ctypes, rest=setdiff(rownames(Theta), out$ctypes)),
 
 ## Y <- Y[svoc,sk]
 ## X <- X[svoc,sj]
-## Theta <- Theta[k,sj]
+## Theta <- Theta[sk,sj]
 ## gamma <- gamma[sj]
 
 ## -----------------------------------------------------------------------------

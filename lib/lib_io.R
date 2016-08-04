@@ -1,4 +1,4 @@
-
+library(zoo)
 
 ReadTSeries <- function(filename) {
   ts <- read.csv(filename, colClasses="numeric", check.names=FALSE)

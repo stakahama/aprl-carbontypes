@@ -9,7 +9,7 @@ library(RJSONIO)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", "lib/lib_collapse.R")
+PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_collapse.R"))
 
 ## -----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ svoc <- ReadFile("svoc")$compounds
 
 ## -----------------------------------------------------------------------------
 
-nC <- rowSums(matrices$Y[svoc,])
+nC <- rowSums(Y[svoc,])
 
 for(.label in names(measlist)) {
 

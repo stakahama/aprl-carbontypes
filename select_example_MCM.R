@@ -12,7 +12,7 @@ library(pryr)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_collapse.R"))
+PopulateEnv("mylib", c("lib/lib_io.R", "lib/carbonprod.R"))
 
 ## -----------------------------------------------------------------------------
 
@@ -27,45 +27,14 @@ clabels <- ReadFile("clabels")
 
 carbon.attr <- ReadFile("carbonattr")
 
+decisions <- as.list(ReadFile("example_1"))
+
 ## -----------------------------------------------------------------------------
 
 colnames(Y) <- clabels[rownames(Theta)]
 rownames(Theta) <- clabels[rownames(Theta)]
 
 carbon.attr$clabel <- clabels[carbon.attr$ctype]
-
-## -----------------------------------------------------------------------------
-
-CarbonInnerProd <- function(M, Y) {
-  cmpds <- intersect(names(M), rownames(Y))
-  time <- index(M)
-  moles <- M[,cmpds] %*% Y[cmpds,]
-  ## frac <- moles/rowSums(moles)
-  melt(data.frame(time, moles, check.names=FALSE),
-       id.vars="time",
-       variable.name="clabel",
-       value.name="nC")
-}
-
-CarbonProd <- function(M, Y) {
-  cmpds <- intersect(names(M), rownames(Y))
-  timevec <- index(M)
-  M <- coredata(M)
-  rownames(M) <- names(timevec) <- sprintf("x%d", seq_along(timevec))
-  M.lf <- melt(M[,cmpds,drop=FALSE], varnames=c("time", "compound"), value.name="nmolec")
-  Y.lf <- melt(Y[cmpds,], varnames=c("compound", "clabel"), value.name="nC") %>%
-    mutate(clabel=factor(clabel, sort(levels(clabel))))
-  full_join(M.lf, Y.lf, by=c("compound")) %>%
-    group_by(time) %>% mutate(nC=nC*nmolec, nmolec=NULL) %>%
-    ungroup() %>% mutate(time=timevec[time])
-}
-
-OrderSlice <- function(df) {
-  wf <- acast(df, compound~clabel, sum, value.var="nC")
-  levs <- rownames(wf)[order(rowSums(wf), decreasing=TRUE)]
-  df %>% mutate(compound=factor(compound, levs),
-                clabel=factor(clabel, sort(levels(clabel))))
-}
 
 ## -----------------------------------------------------------------------------
 
@@ -112,11 +81,6 @@ print(ggp)
 dev.off()
 
 ## -----------------------------------------------------------------------------
-
-decisions <- list(
-  hour=20,
-  ncompounds=20
-)
 
 example <- Slice(moles.molec$aer, decisions$hour)
 

@@ -15,6 +15,7 @@ FilePath <- function(f) {
     "svoc"="inputs/SVOCs.json",
     "clabels"="inputs/clabels.json",
     "meas"="inputs/meas_FGs.json",
+    "example_1"="inputs/example_1.json",
     ## lambdaC
     "plot_ctype_fit"="outputs/lambdaC_ctype_%s.pdf",
     "plot_nC_fit"="outputs/lambdaC_nC_%s.pdf",
@@ -22,15 +23,18 @@ FilePath <- function(f) {
     "lambdaC"="outputs/lambdaC_values_%s.csv",
     "lmfit"="outputs/lambdaC_lmfit_%s.rds",
     ## OSc
-    "plot_compound_OSc"="outputs/OSc_OSc_%s.pdf",
-    "plot_compound_elemratios"="outputs/OSc_elemratios_%s.pdf",
-    "plot_compound_vankrevelen"="outputs/OSc_vanKrevelen_%s.pdf",
+    "plot_OSc"="outputs/OSc_OSc_%s_%s.pdf",
+    "plot_elemratios"="outputs/OSc_elemratios_%s_%s.pdf",
+    "plot_vankrevelen"="outputs/OSc_vanKrevelen_%s_%s.pdf",
     ## examples
     "tseries_gas"="inputs/apinene_formatted.csv",
     "tseries_aer"="inputs/apinene_aer_formatted.csv",
     "plot_ctype_tseries"="outputs/apinene_ctype_tseries.pdf",
     "plot_OSc_tseries"="outputs/apinene_OSc_tseries.pdf",
-    "plot_compound_abundance"="outputs/apinene_compound_abundance.pdf"
+    "plot_compound_abundance"="outputs/apinene_compound_abundance.pdf",
+    ##
+    "plot_compound_nC"="outputs/nC_compound.pdf",
+    "plot_nC_cumsum"="outputs/nC_apinene_cumsum.pdf"
   )
   filelist[f]
 }
@@ -54,9 +58,10 @@ ReadFile <- function(f, ...) {
   Read(FilePath(f))
 }
 
-## OutFile <- function(x, ext=NULL, path="outputs", prefix="lambdaC")
-##   function(suffix=NULL)
-##     file.path(path, paste(sep=".", paste(sep="_", prefix, x, suffix), ext))
 
 SprintF <- function(f, ...)
   sprintf(FilePath(f), ...)
+
+## OutFile <- function(x, ext=NULL, path="outputs", prefix="lambdaC")
+##   function(suffix=NULL)
+##     file.path(path, paste(sep=".", paste(sep="_", prefix, x, suffix), ext))
