@@ -70,7 +70,7 @@ for(.loop in c("compound", "mixture")) {
   ## -----------------------------------------------------------------------------
 
   nC <- n.example * rowSums(matrices.orig$Y)
-  atoms <- with(matrices, (n.example*X) %*% t(Lambda[c("H","N","O"),]))
+  atoms <- with(matrices.orig, (n.example*X) %*% t(Lambda[c("H","N","O"),]))
 
   ## -----------------------------------------------------------------------------
 
@@ -100,20 +100,20 @@ for(.loop in c("compound", "mixture")) {
 
       ## -------------------------------------------------------------------------
 
-      ## *** compound OSc ***
+      ## *** compound OSC ***
 
       paired <- data.frame(compound=rownames(X),
-                           OSc=(X %*% zFG)/nC,
-                           OSc.s=(X.s %*% zFG.s)/nC.s)
+                           OSC=(X %*% zFG)/nC,
+                           OSC.s=(X.s %*% zFG.s)/nC.s)
       paired <- left_join(paired, select(molec.attr, compound, logC0))
 
       ggp <- ggplot(paired)+
-        geom_point(aes(OSc, OSc.s, color=logC0))+
+        geom_point(aes(OSC, OSC.s, color=logC0))+
         lims(x=c(-3, 2), y=c(-3, 2))+
         labs(x=expression(OS[C]), y=expression(OS[C]*"*"))+
         geom_abline(intercept=0, slope=1)
 
-      pdf(SprintF("plot_OSc", .loop, .label))
+      pdf(SprintF("plot_OSC", .loop, .label))
       print(ggp)
       dev.off()
 

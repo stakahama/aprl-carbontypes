@@ -5,7 +5,9 @@
     },
     "lambdaC": {
 	"set1": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol"],
-	"set2": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate"]
+	"set2": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate"],
+	"set3": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate", "carbonylperoxyacid", "hydroperoxide", "peroxyacylnitrate"],
+	"set4": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate", "carbonylperoxyacid", "hydroperoxide", "peroxyacylnitrate", "phenol","alkene CH","aromatic CH"]
     },
     "collapse": {
 	"carbonyl": ["ketone", "aldehyde", "ester"]

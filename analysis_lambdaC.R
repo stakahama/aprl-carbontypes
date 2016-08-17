@@ -37,17 +37,23 @@ DBind[measlist.collapsed, matrices.collapsed] <-
 
 ## -----------------------------------------------------------------------------
 
-loopvars <- list(c("matrices", "measlist"),
+matrices.original <- matrices
+measlist.original <- measlist
+
+loopvars <- list(c("matrices.original", "measlist.original"),
                  c("matrices.collapsed", "measlist.collapsed"))
 
-for(elem in loopvars) {
+for(.elem in loopvars) {
 
-  DBind[X, Y, Theta, gamma] <- get(elem[1])
-  measlist <- get(elem[2])
+  DBind[X, Y, Theta, gamma] <- get(.elem[1])
+  measlist <- get(.elem[2])
 
   for(.label in names(measlist)) {
 
     meas <- measlist[[.label]]
+
+    meas <- intersect(meas, names(which(colSums(X[svoc,meas]) > 1)))
+                                        # > 0 produces singularity
 
     measC <- rowSums(Theta[,meas]) > 0
     Theta.s <- sweep(Theta[measC, meas], 2, gamma[meas],`*`)
@@ -135,7 +141,6 @@ for(elem in loopvars) {
 
     write.csv(ResetIndex(as.data.frame(lambdaC.mat), "method"),
               SprintF("lambdaC", .label), row.names=FALSE)
-
 
     ## -----------------------------------------------------------------------------
 

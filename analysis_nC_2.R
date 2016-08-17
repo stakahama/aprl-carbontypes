@@ -23,16 +23,16 @@ moles.molec <- ReadTSeries(FilePath("tseries_aer"))
 
 clabels <- ReadFile("clabels")
 
-meas <- ReadFile("meas")$nC
+meas <- ReadFile("meas")$lambdaC
 
 decisions <- as.list(ReadFile("example_1"))
 
 ## -----------------------------------------------------------------------------
 
-Y <- Y[svoc,sk]
-X <- X[svoc,sj]
-Theta <- Theta[sk,sj]
-gamma <- gamma[sj]
+## Y <- Y[svoc,sk]
+## X <- X[svoc,sj]
+## Theta <- Theta[sk,sj]
+## gamma <- gamma[sj]
 
 ## -----------------------------------------------------------------------------
 
@@ -49,13 +49,14 @@ Ystar <- function(Y, Theta, gamma) {
   Y
 }
 
-cmpds <- intersect(svoc, names(moles.molec))
 example <- Slice(moles.molec, decisions$hour)
+cmpds <- names(example)[example > 1e-3]
 
-meas.full <- c(meas, list("full"=colnames(Theta)))
+tiers <- c(head(meas, 1), Map(setdiff, tail(meas, -1), head(meas, -1)))
+meas.full <- c(tiers, list("full"=colnames(Theta)))
 
 nC.s <- ldply(meas.full, function(J.s, Y, Theta, gamma, example, cmpds) {
-  Y.s <- Ystar(Y, Theta[,J.s], gamma[J.s])
+  Y.s <- Ystar(Y, Theta[,J.s,drop=FALSE], gamma[J.s])
   prod. <- example[,cmpds] %*% Y.s[cmpds,]
   data.frame(clabel=colnames(Y), nC=c(prod.))
 }, Y, Theta, gamma, example, cmpds, .id="tier")
@@ -79,8 +80,9 @@ lf <- melt(wf, c("clabel", "tier"), value.name="cumsum")
 
 ggp <- ggplot(lf)+
   geom_bar(aes(clabel, cumsum, fill=tier), stat="identity", position="stack")+
-  theme(axis.text.x=element_text(angle=60, hjust=1))
+  theme(axis.text.x=element_text(angle=60, hjust=1))+
+  scale_y_continuous(limits=c(0, 1), expand=c(0, 0))
 
-pdf(FilePath("plot_nC_cumsum"), width=9, height=7)
+pdf(FilePath("plot_nC_cumsum"), width=12, height=7)
 print(ggp)
 dev.off()

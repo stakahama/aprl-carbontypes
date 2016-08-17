@@ -29,4 +29,4 @@ stopifnot(identical(mat$gamma, gamma2))
 
 ## -----------------------------------------------------------------------------
 
-save(zFG, Lambda, file=FilePath("matrices"))
+save(zFG, Lambda, file=FilePath("matrices_2"))

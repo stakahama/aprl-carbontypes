@@ -57,20 +57,20 @@ for(elem in loopvars) {
 
     ## -------------------------------------------------------------------------
 
-    ## *** compound OSc ***
+    ## *** compound OSC ***
 
     paired <- data.frame(compound=svoc,
-                         OSc=(X[svoc,] %*% zFG)/nC[svoc],
-                         OSc.s=(X.s %*% zFG.s)/nC.s)
+                         OSC=(X[svoc,] %*% zFG)/nC[svoc],
+                         OSC.s=(X.s %*% zFG.s)/nC.s)
     paired <- left_join(paired, select(molec.attr, compound, logC0))
 
     ggp <- ggplot(paired)+
-      geom_point(aes(OSc, OSc.s, color=logC0))+
+      geom_point(aes(OSC, OSC.s, color=logC0))+
       lims(x=c(-3, 2), y=c(-3, 2))+
       labs(x=expression(OS[C]), y=expression(OS[C]*"*"))+
       geom_abline(intercept=0, slope=1)
 
-    pdf(SprintF("plot_compound_OSc", .label))
+    pdf(SprintF("plot_compound_OSC", .label))
     print(ggp)
     dev.off()
 

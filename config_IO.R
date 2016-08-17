@@ -22,19 +22,28 @@ FilePath <- function(f) {
     "Phi"="outputs/lambdaC_Phi_%s.rds",
     "lambdaC"="outputs/lambdaC_values_%s.csv",
     "lmfit"="outputs/lambdaC_lmfit_%s.rds",
-    ## OSc
-    "plot_OSc"="outputs/OSc_OSc_%s_%s.pdf",
-    "plot_elemratios"="outputs/OSc_elemratios_%s_%s.pdf",
-    "plot_vankrevelen"="outputs/OSc_vanKrevelen_%s_%s.pdf",
+    ## OSC
+    "plot_OSC"="outputs/OSC_OSC_%s_%s.pdf",
+    "plot_elemratios"="outputs/OSC_elemratios_%s_%s.pdf",
+    "plot_vankrevelen"="outputs/OSC_vanKrevelen_%s_%s.pdf",
     ## examples
     "tseries_gas"="inputs/apinene_formatted.csv",
     "tseries_aer"="inputs/apinene_aer_formatted.csv",
     "plot_ctype_tseries"="outputs/apinene_ctype_tseries.pdf",
-    "plot_OSc_tseries"="outputs/apinene_OSc_tseries.pdf",
+    "plot_OSC_tseries"="outputs/apinene_OSC_tseries.pdf",
     "plot_compound_abundance"="outputs/apinene_compound_abundance.pdf",
     ##
     "plot_compound_nC"="outputs/nC_compound.pdf",
-    "plot_nC_cumsum"="outputs/nC_apinene_cumsum.pdf"
+    "plot_nC_cumsum"="outputs/nC_apinene_cumsum.pdf",
+    ##
+    "lambdaC_coef_errorbars"="outputs/lambdaC_coef_errorbars.pdf",
+    "lambdaC_coef_nominal"="outputs/lambdaC_coef_nominal.csv",
+    "lambdaC_coef_actual"="outputs/lambdaC_coef_actual.csv",
+    "plot_props"="outputs/props_%s.pdf",
+    "plot_props_scatter"="outputs/props_scatter_%s.pdf",
+    "props_file"="outputs/propsfile_%s.rds",
+    ##
+    "lastline"=NA
   )
   filelist[f]
 }
@@ -53,11 +62,15 @@ GenericReader <- function(filename) {
 
 ReadFile <- function(f, ...) {
   Read <- switch(f,
-                 "simpol"=function(x) as.matrix(read.csv(x, row.names=1)),
+                 "simpol"=MatrixReader,
+                 "lambdaC_coef_nominal"=MatrixReader,
+                 "lambdaC_coef_actual"=MatrixReader,
                  GenericReader)
   Read(FilePath(f))
 }
 
+MatrixReader <- function(x)
+  as.matrix(read.csv(x, row.names=1, check.names=FALSE))
 
 SprintF <- function(f, ...)
   sprintf(FilePath(f), ...)

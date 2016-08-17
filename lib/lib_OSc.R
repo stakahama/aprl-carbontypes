@@ -4,8 +4,8 @@ library(dplyr)
 Shorttype <- function(x)
   toupper(substring(x, 1, 1))
 
-## AtomOSc <- function(oscfulltable, ...) {
-##   ## OSc fulltable
+## AtomOSC <- function(oscfulltable, ...) {
+##   ## OSC fulltable
 
 ##   ## From Ruggeri and Takahama 2016
 ##   z <- c(
@@ -25,7 +25,7 @@ Shorttype <- function(x)
 ##   ## Carbon oxidation states
 ##   fulltable <- fulltable %>%
 ##     group_by(compound, atom) %>%
-##     summarize(OSc=sum(z)) %>%
+##     summarize(OSC=sum(z)) %>%
 ##     ungroup()
 
 ##   ## Return
@@ -34,7 +34,7 @@ Shorttype <- function(x)
 ## }
 
 
-AtomOSc <- function(adjtable, ...) {
+AtomOSC <- function(adjtable, ...) {
 
   ox <- c(
     "C"=0,
@@ -45,25 +45,25 @@ AtomOSc <- function(adjtable, ...) {
 
   adjtable %>% filter(Shorttype(atom1_type)=="C") %>%
     group_by(compound, atom1) %>%
-    summarize(OSc=sum(ox[Shorttype(atom2_type)]*bondorder)) %>%
+    summarize(OSC=sum(ox[Shorttype(atom2_type)]*bondorder)) %>%
     ungroup() %>%
     rename(atom=atom1)
 
 }
 
-MolecOSc <- function(table, ...) {
+MolecOSC <- function(table, ...) {
 
-  table <- AtomOSc(table)
+  table <- AtomOSC(table)
 
   ## Compound mean carbon oxidation states
   table %>%
     group_by(compound) %>%
-    summarize(OSc=mean(OSc))
+    summarize(OSC=mean(OSC))
 
 }
 
 
-GroupOSc <- function(adjtable, fulltable) {
+GroupOSC <- function(adjtable, fulltable) {
 
   ox <- c(
     "C"=0,

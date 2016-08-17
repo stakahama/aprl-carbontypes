@@ -7,7 +7,7 @@ library(reshape2)
 library(Rfunctools)
 library(pryr)
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSc.R"))
+PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSC.R"))
 
 ## -----------------------------------------------------------------------------
 
@@ -46,8 +46,8 @@ carbon.attr <- full_join(
 
 carbon.attr <- full_join(
   carbon.attr,
-  ## AtomOSc(osctable)
-  AtomOSc(adjtable)
+  ## AtomOSC(osctable)
+  AtomOSC(adjtable)
 )
 
 ## -----------------------------------------------------------------------------

@@ -9,7 +9,7 @@ source("lib/lib_simpol.R")
 simpol <- simpolclass$new()
 
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", "lib/lib_OSc.R")
+PopulateEnv("mylib", "lib/lib_OSC.R")
 
 ## -----------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ masses <- masses %>%
 ## -----------------------------------------------------------------------------
 
 masses <- full_join(masses %>% select(compound, SMILES, MW, logC0),
-                   MolecOSc(adjacent))
+                   MolecOSC(adjacent))
 
 ## -----------------------------------------------------------------------------
 

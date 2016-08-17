@@ -12,7 +12,7 @@ library(pryr)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/carbonprod.R"))
+PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_carbonprod.R", "lib/lib_metrics.R"))
 
 ## -----------------------------------------------------------------------------
 
@@ -26,6 +26,8 @@ moles.molec <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas
 clabels <- ReadFile("clabels")
 
 carbon.attr <- ReadFile("carbonattr")
+
+molec.attr <- ReadFile("molecattr")
 
 decisions <- as.list(ReadFile("example_1"))
 
@@ -55,40 +57,38 @@ dev.off()
 
 ## -----------------------------------------------------------------------------
 
-osc.lf <- left_join(moles.lf, carbon.attr %>% select(clabel, OSc), by="clabel") %>%
-  group_by(phase, time, OSc) %>% summarize(nC=sum(nC)) %>% ungroup() %>%
+osc.lf <- left_join(moles.lf, carbon.attr %>% select(clabel, OSC), by="clabel") %>%
+  group_by(phase, time, OSC) %>% summarize(nC=sum(nC)) %>% ungroup() %>%
   group_by(phase, time) %>% mutate(frac=nC/sum(nC)) %>% ungroup()
 
 ## ggp <- ggplot(osc.lf %>% filter(time %in% seq(0, 25, 1)))+
-##   geom_bar(aes(time, frac, fill=OSc), stat="identity")+
+##   geom_bar(aes(time, frac, fill=OSC), stat="identity")+
 ##   facet_grid(phase~.)+
 ##   scale_x_continuous(expand=c(0, 0))+
 ##   scale_y_continuous(expand=c(0, 0))
 ## print(ggp)
 
-levs <- sort(unique(osc.lf$OSc), decreasing=TRUE)
+levs <- sort(unique(osc.lf$OSC), decreasing=TRUE)
 colorscale <- colorRampPalette(rev(c("#132B43", "#56B1F7")))(length(levs))
 
-ggp <- ggplot(osc.lf %>% mutate(OSc=factor(OSc, levs)))+
-  geom_area(aes(time, frac, fill=OSc), color="white", size=0)+
+ggp <- ggplot(osc.lf %>% mutate(OSC=factor(OSC, levs)))+
+  geom_area(aes(time, frac, fill=OSC), color="white", size=0)+
   scale_fill_manual(values=colorscale)+
   facet_grid(phase~.)+
   scale_x_continuous(expand=c(0, 0))+
   scale_y_continuous(expand=c(0, 0))
 
-pdf(FilePath("plot_OSc_tseries"), width=10, height=7)
+pdf(FilePath("plot_OSC_tseries"), width=10, height=7)
 print(ggp)
 dev.off()
 
 ## -----------------------------------------------------------------------------
 
-example <- Slice(moles.molec$aer, decisions$hour)
+example.aer <- Slice(moles.molec$aer, decisions$hour)
+example.aer <- CarbonProd(example.aer, Y)
+example.aer <- OrderSlice(example.aer)
 
-example <- CarbonProd(example, Y)
-
-example <- OrderSlice(example)
-
-example.subset <- example %>%
+example.subset <- example.aer %>%
   filter(unclass(compound) < decisions$ncompounds) %>%
   mutate(clabel=factor(clabel))
 
@@ -101,4 +101,59 @@ print(ggp)
 dev.off()
 
 ## -----------------------------------------------------------------------------
+## still exploratory below this point
+## -----------------------------------------------------------------------------
 
+id <- "ctype"#c("type", "ctype")
+atoms <- c("C", "H", "N", "O")
+carbontype.masses <- mutate(unique(carbon.attr[,c(id, atoms)]), C=1)
+carbontype.masses[atoms] <- sweep(carbontype.masses[atoms], 2, am[atoms], "*")
+carbontype.masses$OM <- rowSums(carbontype.masses[atoms])
+carbontype.masses$clabel <- clabels[carbontype.masses$ctype]
+
+examp <- ldply(moles.molec, function(x, i, Y) CarbonProd(Slice(x, i), Y),
+               decisions$hour, Y, .id="phase")
+examp$time <- NULL
+
+examp <- left_join(examp, subset(molec.attr,,c(compound, logC0)))
+examp <- left_join(examp, subset(carbontype.masses,,c(clabel, OM)))
+examp$OM <- with(examp, OM*nC)
+examp$logC0bin <- round(examp$logC0)
+
+## examp.clabel <- examp %>% group_by(logC0bin, clabel) %>% summarize(OM=sum(OM))
+examp.clabel <- examp %>% group_by(logC0bin, clabel, phase) %>% summarize(OM=sum(OM))
+examp.clabel$clabel <- factor(examp.clabel$clabel)
+examp.phase <- examp %>% group_by(logC0bin, phase) %>% summarize(OM=sum(OM))
+
+ccol <- rainbow(60)
+pcol <- c(aer=rgb(1,1,1,1), gas=rgb(.5,.5,.5,.8))
+
+ggplot()+
+  geom_bar(aes(logC0bin, OM, fill=clabel),
+           data=examp.clabel,
+           position="stack", stat="identity")+
+  ## geom_bar(aes(logC0bin, OM, fill=phase), color="black",
+  ##          data=examp.phase %>% arrange(-order(phase)),
+  ##          position="stack", stat="identity")+
+  ## scale_fill_manual(values=c(pcol, ccol))
+  ## geom_bar(aes(logC0bin, OM), color="black", fill=NA,
+  ##          data=examp.phase %>% arrange(-order(phase)),
+  ##          position="stack", stat="identity")+
+  facet_grid(phase~.)
+
+## -----------------------------------------------------------------------------
+
+examp <- ldply(moles.molec, function(x, i, Y) CarbonProd(Slice(x, i), Y),
+               decisions$hour, Y, .id="phase") %>%
+  mutate(OC=am["C"]*nC, time=NULL)
+
+examp <- left_join(examp, subset(molec.attr,,c(compound, logC0)))
+examp <- left_join(examp, subset(carbon.attr,,c(clabel, OSC)))
+examp$logC0bin <- round(examp$logC0)
+
+examp <- examp %>% group_by(logC0bin, OSC, phase) %>% summarize(OC=sum(OC)) %>% ungroup()
+
+ggplot(examp %>% mutate(OSC=factor(OSC, rev(sort(unique(OSC))))))+
+  geom_bar(aes(logC0bin, OC, fill=OSC),
+           position="stack", stat="identity")+
+  facet_grid(phase~.)

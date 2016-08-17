@@ -7,7 +7,7 @@ Code to accompany manuscript (*in prep*) on carbon type analysis.
 Folders:
 
 * lib/: code library for reused functions
-* data-raw: original data
+* data-raw/: original data
 * data/: populated with build\_ssp.sh
 * outputs/: output of analysis\_*
 

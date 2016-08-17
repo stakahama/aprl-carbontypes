@@ -26,23 +26,23 @@ isTRUE(all.equal(X, sweep(Y %*% Theta, 2, gamma, "*")))
 
 ## *** carbon oxidation state per carbon type ***
 
-zeta.table <- unique(subset(carbon.attr,,c("ctype", "OSc")))
+zeta.table <- unique(subset(carbon.attr,,c("ctype", "OSC")))
 zeta.approx <- rowSums(sweep(Theta, 2, gamma*zFG, "*"))
 
 osc <- full_join(zeta.table,
                  data.frame(ctype=names(zeta.approx), zeta=zeta.approx))
 
-with(osc, plot(OSc, zeta))
+with(osc, plot(OSC, zeta))
 abline(0, 1)
 
 ## which have the discrepancies?
 ViewTheta <- function(theta) apply(theta > 0, 1, which)
-subset(osc, zeta != OSc)
-ViewTheta(Theta[with(osc, ctype[zeta != OSc]),])
+subset(osc, zeta != OSC)
+ViewTheta(Theta[with(osc, ctype[zeta != OSC]),])
 
 ## *** mean carbon oxidation state per molecule ***
 
-zeta <- with(zeta.table, setNames(OSc, ctype))[colnames(Y)]
+zeta <- with(zeta.table, setNames(OSC, ctype))[colnames(Y)]
 
 nC <- rowSums(Y)
 

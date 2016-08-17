@@ -6,7 +6,7 @@ library(reshape2)
 library(Rfunctools)
 library(pryr)
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSc.R"))
+PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSC.R"))
 
 ## -----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ numatoms.wf <- dcast(numatoms.uniq, group ~ shorttype, value.var="n", fill=0)
 ## -----------------------------------------------------------------------------
 
 ## how is it bonded to carbon? based on this, compute oxidation state
-bonded.z <- GroupOSc(adjtable, fulltable)
+bonded.z <- GroupOSC(adjtable, fulltable)
 
 ## identify unique values for each group
 bonded.uniq <- unique(subset(bonded.z,,c("group","zFG")))
