@@ -1,5 +1,6 @@
 
 am <- c("C"=12.01, "H"=1.001, "N"=14.35, "O"=15.99)
+heteroatoms <- c("H", "N", "O")
 
 Calculate <- function(n, X, Y, Theta, gamma, zFG, Lambda, i=TRUE, k=TRUE, j=TRUE, nC.total=NULL) {
 
@@ -52,7 +53,11 @@ Calculate <- function(n, X, Y, Theta, gamma, zFG, Lambda, i=TRUE, k=TRUE, j=TRUE
 
 }
 
-Calculate2 <- function(n, X, Y, Theta, gamma, zFG, Lambda, carbon.attr, i=TRUE, k=TRUE, j=TRUE, lambdaC=NULL) {
+Calculate2 <- function(n, X, Y, Theta, gamma, zFG, Lambda, zeta, cOM, i=TRUE, k=TRUE, j=TRUE, lambdaC=NULL) {
+
+  if(isTRUE(i)) i <- rownames(Y)
+  if(isTRUE(k)) k <- rownames(Theta)
+  if(isTRUE(j)) j <- colnames(Theta)
 
   ## extract
   Theta.s <- sweep(Theta[k,j], 2, gamma[j],`*`)
@@ -61,34 +66,39 @@ Calculate2 <- function(n, X, Y, Theta, gamma, zFG, Lambda, carbon.attr, i=TRUE, 
   X.s <- n[i]*X[i,j]
   gamma.s <- gamma[j]
   zFG.s <- zFG[j]
-  Lambda.s <- Lambda[c("H","N","O"), j]
-  lambdaC.s <- lambdaC[j]
-  lambdaC.s[] <- replace(lambdaC.s, is.na(lambdaC.s), 0)
-
-  carbon.mass <- CarbonTypeMass(carbon.attr)
+  Lambda.s <- Lambda[heteroatoms, j] # heteroatoms lexically scoped
+  zeta.s <- zeta[k]
 
   ## compute
-  if(!is.numeric(lambdaC)) {
-    nC.total <- sum(nC.s)
-  } else {
-    nC.total <- sum(X.s %*% lambdaC.s)
+  if(is.numeric(lambdaC)) {
+    lambdaC.s <- lambdaC[j]
+    lambdaC.s[] <- replace(lambdaC.s, is.na(lambdaC.s), 0)
+    nC.s <- sum(X.s %*% lambdaC.s)
   }
 
+  nC.total <- sum(nC.s)
   nC.c <- colSums(n[i]*sweep(Y[i,k], 2, sign(rowSums(Theta.s)), `*`))
   OC.c <- am["C"]*nC.c
-  OM.c <- nC.c*with(carbon.mass, setNames(OM, ctype))[names(nC.c)]
+  OM.c <- nC.c*cOM[names(nC.c)]
   atoms.g <- sweep(Lambda.s, 2, colSums(X.s), "*")
   atomr.g <- atoms.g/nC.total
   OM.OC.g <- colSums(am[rownames(atomr.g)]*atoms.g)/sum(OC.c)
 
+  OSC.true <- sum(sweep(Y.s, 2, zeta.s, "*"))/nC.total
+  ## OSC.approx <- sum(X.s %*% zFG.s)/nC.total
+  OSC.approx <- (t(colSums(X.s)) %*% zFG.s)/nC.total
+
   ctype.subset <- names(which(nC.c > 0))
   group.subset <- names(which(OM.OC.g > 0))
 
-  ## generate tables
+  ## *** generate tables ***
+
+  ## masses
   masses <- inner_join(data.frame(ctype=names(OC.c), OC=OC.c),
                        data.frame(ctype=names(OM.c), OM=OM.c)) %>%
     filter(ctype %in% ctype.subset) #%>% melt(., "ctype")
 
+  ## ratios
   rownames(atomr.g) <- paste0(rownames(atomr.g), "/C")
   ratios <- full_join(adply(atomr.g, 2, .id="group"), #melt(atomr.g, c("metric", "group"))
                       data.frame(group=names(OM.OC.g),
@@ -96,20 +106,24 @@ Calculate2 <- function(n, X, Y, Theta, gamma, zFG, Lambda, carbon.attr, i=TRUE, 
                                  check.names=FALSE)) %>%
     filter(group %in% group.subset)
 
+  ## OSC
+  oxstate <- with(list(x=c(true=OSC.true, approx=OSC.approx)),
+                  data.frame(method=names(x), value=x))
+
   ## return
-  list(masses=masses, ratios=ratios)
+  list(masses=masses, ratios=ratios, OSC=oxstate)
 
 }
 
 CarbonTypeMass <- function(carbon.attr) {
   ##
   id <- "ctype" #c("type", "ctype")
-  atomlist <- c("C", "H", "N", "O")
   ##
-  carbon.mass <- unique(carbon.attr[,c(id, atomlist)])
-  carbon.mass$C <- 1
-  carbon.mass[atomlist] <- sweep(carbon.mass[atomlist], 2, am[atomlist], "*")
-  carbon.mass$OM <- rowSums(carbon.mass[atomlist])
+  carbon.mass <- unique(carbon.attr[,c(id, heteroatoms)])
+  carbon.mass[heteroatoms] <- sweep(carbon.mass[heteroatoms], 2, am[heteroatoms], "*")
+  carbon.mass[["C"]] <- am["C"]
+  carbon.mass[["OM"]] <- carbon.mass[["C"]]+rowSums(carbon.mass[heteroatoms])
   ##
   carbon.mass
+
 }

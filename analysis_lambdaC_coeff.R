@@ -22,8 +22,9 @@ df <- ldply(ff, function(f, x=1.96) {
   cc
 }, .id="meas")
 
-levels(df$meas) <- with(list(x=levels(df$meas)),
-                        c(sapply(split(x, ifelse(grepl("_collapsed", x), 1, 0)), sort)))
+newlevs <- with(list(x=levels(df$meas)),
+                c(sapply(split(x, ifelse(grepl("_collapsed", x), 1, 0)), sort)))
+df$meas <- factor(df$meas, newlevs)
 
 ## -----------------------------------------------------------------------------
 

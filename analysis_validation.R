@@ -5,6 +5,7 @@ library(plyr)
 library(dplyr)
 library(reshape2)
 library(Rfunctools)
+PopulateEnv("IO", "config_IO.R")
 
 ## -----------------------------------------------------------------------------
 
@@ -39,6 +40,9 @@ abline(0, 1)
 ViewTheta <- function(theta) apply(theta > 0, 1, which)
 subset(osc, zeta != OSC)
 ViewTheta(Theta[with(osc, ctype[zeta != OSC]),])
+                                        # ester-containing groups
+## does not agree per carbon type because of the way esters are defined now,
+##   but is corrected when summed over a molecule
 
 ## *** mean carbon oxidation state per molecule ***
 
@@ -48,5 +52,7 @@ nC <- rowSums(Y)
 
 plot((Y %*% zeta)/nC, (X %*% zFG)/nC)
 abline(0,1)
+
+isTRUE(all.equal((Y %*% zeta)/nC, (X %*% zFG)/nC))
 
 ## -----------------------------------------------------------------------------

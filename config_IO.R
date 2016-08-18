@@ -42,6 +42,8 @@ FilePath <- function(f) {
     "plot_props"="outputs/props_%s.pdf",
     "plot_props_scatter"="outputs/props_scatter_%s.pdf",
     "props_file"="outputs/propsfile_%s.rds",
+    "plot_props_cumsum"="outputs/props_cumsum_%s.pdf",
+    "tables_props_cumsum"="outputs/props_cumsum_%s.rds",
     ##
     "lastline"=NA
   )

@@ -16,8 +16,6 @@ PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_carbonprod.R", "lib/lib_metrics.
 
 ## -----------------------------------------------------------------------------
 
-DBind[svoc, sk, sj] <- ReadFile("svoc")
-
 DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
 
 moles.molec <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
@@ -40,7 +38,14 @@ carbon.attr$clabel <- clabels[carbon.attr$ctype]
 
 ## -----------------------------------------------------------------------------
 
+moles.molec[] <- lapply(moles.molec, function(x) {
+  coredata(x)[] <- ppb2micromol(coredata(x))
+  x
+})
+
 moles.lf <- ldply(moles.molec, CarbonInnerProd, Y, .id="phase")
+
+## -----------------------------------------------------------------------------
 
 frac.lf <- moles.lf %>% group_by(phase, time) %>%
   mutate(frac=nC/sum(nC))
@@ -100,16 +105,20 @@ pdf(FilePath("plot_compound_abundance"), width=10, height=7)
 print(ggp)
 dev.off()
 
+stop("end script")
+
 ## -----------------------------------------------------------------------------
 ## still exploratory below this point
 ## -----------------------------------------------------------------------------
 
-id <- "ctype"#c("type", "ctype")
-atoms <- c("C", "H", "N", "O")
-carbontype.masses <- mutate(unique(carbon.attr[,c(id, atoms)]), C=1)
-carbontype.masses[atoms] <- sweep(carbontype.masses[atoms], 2, am[atoms], "*")
-carbontype.masses$OM <- rowSums(carbontype.masses[atoms])
-carbontype.masses$clabel <- clabels[carbontype.masses$ctype]
+## id <- "ctype"#c("type", "ctype")
+## atoms <- c("C", "H", "N", "O")
+## carbontype.masses <- mutate(unique(carbon.attr[,c(id, atoms)]), C=1)
+## carbontype.masses[atoms] <- sweep(carbontype.masses[atoms], 2, am[atoms], "*")
+## carbontype.masses$OM <- rowSums(carbontype.masses[atoms])
+## carbontype.masses$clabel <- clabels[carbontype.masses$ctype]
+
+carbontype.masses <- CarbonTypeMasses(carbon.attr)
 
 examp <- ldply(moles.molec, function(x, i, Y) CarbonProd(Slice(x, i), Y),
                decisions$hour, Y, .id="phase")
@@ -139,21 +148,4 @@ ggplot()+
   ## geom_bar(aes(logC0bin, OM), color="black", fill=NA,
   ##          data=examp.phase %>% arrange(-order(phase)),
   ##          position="stack", stat="identity")+
-  facet_grid(phase~.)
-
-## -----------------------------------------------------------------------------
-
-examp <- ldply(moles.molec, function(x, i, Y) CarbonProd(Slice(x, i), Y),
-               decisions$hour, Y, .id="phase") %>%
-  mutate(OC=am["C"]*nC, time=NULL)
-
-examp <- left_join(examp, subset(molec.attr,,c(compound, logC0)))
-examp <- left_join(examp, subset(carbon.attr,,c(clabel, OSC)))
-examp$logC0bin <- round(examp$logC0)
-
-examp <- examp %>% group_by(logC0bin, OSC, phase) %>% summarize(OC=sum(OC)) %>% ungroup()
-
-ggplot(examp %>% mutate(OSC=factor(OSC, rev(sort(unique(OSC))))))+
-  geom_bar(aes(logC0bin, OC, fill=OSC),
-           position="stack", stat="identity")+
   facet_grid(phase~.)
