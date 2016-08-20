@@ -14,6 +14,10 @@ PopulateEnv("IO", "config_IO.R")
 ff <- list.files("outputs", "lmfit", full=TRUE)
 names(ff) <- gsub("^lambdaC\\_lmfit\\_(.+)\\.rds$","\\1",basename(ff))
 
+Theta <- ReadFile("matrices")[["Theta"]]
+
+## -----------------------------------------------------------------------------
+
 df <- ldply(ff, function(f, x=1.96) {
   out <- readRDS(f)
   cc <- ResetIndex(as.data.frame(coef(summary(out))), "FG")
@@ -41,7 +45,7 @@ dev.off()
 
 ## -----------------------------------------------------------------------------0
 
-nom <- 1/(1:3)
+nom <- 1/sort(unique(rowSums(Theta)))
 df$nominal <- nom[sapply(df$Estimate, function(x, y) which.min(abs(x-y)), nom)]
 
 ## with(df, plot(Estimate, nominal))

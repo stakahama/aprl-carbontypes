@@ -19,6 +19,26 @@ CountMethod <- function(ni=1, nC, Theta, Y, gamma) {
   1/(gamma*sum(ni*nC)) * (ni %*% Y %*% (1/rowSums(Theta)))
 }
 
+## (need for phenol in set4)
+ApproxSolve <- function(X, Y, B=matrix(0, ncol(X), ncol(Y), dimnames=list(colnames(X), colnames(Y))), thresh=1, inc=1) {
+  ## reduce dimensionality of the problem but keep the dimensions
+  ##   of the original solution (if it worked) in the output
+  out <- try(solve(t(X) %*% X, t(X) %*% Y), TRUE)
+  if(class(out)=="try-error") {
+    j <- names(which(colSums(X) > thresh))
+    ApproxSolve(X[,j], Y, B, thresh+inc) ## recursive!
+  } else {
+    B[rownames(out), colnames(out)] <- out
+    B
+  }
+}
+
+Vec2Mat <- function(x, column="Y") {
+  x <- as.matrix(x)
+  colnames(x) <- column
+  x
+}
+
 ## -----------------------------------------------------------------------------
 
 matrices <- ReadFile("matrices")
@@ -37,6 +57,8 @@ DBind[measlist.collapsed, matrices.collapsed] <-
 
 ## -----------------------------------------------------------------------------
 
+## -----------------------------------------------------------------------------
+
 matrices.original <- matrices
 measlist.original <- measlist
 
@@ -52,8 +74,8 @@ for(.elem in loopvars) {
 
     meas <- measlist[[.label]]
 
-    meas <- intersect(meas, names(which(colSums(X[svoc,meas]) > 1)))
-                                        # > 0 produces singularity
+    ## thresh <- 1 # > 0 produces singularity
+    ## meas <- intersect(meas, names(which(colSums(X[svoc,meas]) > thresh)))
 
     measC <- rowSums(Theta[,meas]) > 0
     Theta.s <- sweep(Theta[measC, meas], 2, gamma[meas],`*`)
@@ -68,7 +90,7 @@ for(.elem in loopvars) {
 
     Phi <- list()
 
-    Phi$solve <- solve(t(X.s) %*% X.s, t(X.s) %*% Y.s)
+    Phi$solve <- ApproxSolve(X.s, Y.s)
 
     Phi$ginv <- MASS::ginv(Theta.s)
     dimnames(Phi$ginv) <- rev(dimnames(Theta.s))
@@ -81,7 +103,7 @@ for(.elem in loopvars) {
 
     lambdaC <- list()
     lambdaC$count <- CountMethod(1, nC.s, Theta.s, Y.s, gamma.s)
-    lambdaC$solve <- solve(t(X.s) %*% X.s, t(X.s) %*% rowSums(Y.s))[,1]
+    lambdaC$solve <- ApproxSolve(X.s, Vec2Mat(rowSums(Y.s)))[,1]
     lambdaC$constr <- BoundedLsq(rowSums(Y.s), X.s, 0, 1)
     ## lambdaC$solve.rowsum <- rowSums(Phi$solve)
     lambdaC$constr.rowsum <- rowSums(Phi$constr)

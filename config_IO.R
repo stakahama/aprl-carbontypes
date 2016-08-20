@@ -45,6 +45,8 @@ FilePath <- function(f) {
     "plot_props_cumsum"="outputs/props_cumsum_%s.pdf",
     "tables_props_cumsum"="outputs/props_cumsum_%s.rds",
     ##
+    "plot_nC_tseries"="outputs/nC_tseries_estimated.pdf",
+    ##
     "lastline"=NA
   )
   filelist[f]
@@ -55,7 +57,7 @@ GenericReader <- function(filename) {
   Read <- switch(
     ext,
     "JSON"=RJSONIO::fromJSON,
-    "CSV"=read.csv,
+    "CSV"=function(...) read.csv(..., check.names=FALSE),
     "RDS"=readRDS,
     "RDA"=Rfunctools::ReadRDA
   )
@@ -63,12 +65,16 @@ GenericReader <- function(filename) {
 }
 
 ReadFile <- function(f, ...) {
-  Read <- switch(f,
-                 "simpol"=MatrixReader,
-                 "lambdaC_coef_nominal"=MatrixReader,
-                 "lambdaC_coef_actual"=MatrixReader,
-                 GenericReader)
-  Read(FilePath(f))
+  if(file.exists(f)) {
+    GenericReader(f)
+  } else {
+    Read <- switch(f,
+                   "simpol"=MatrixReader,
+                   "lambdaC_coef_nominal"=MatrixReader,
+                   "lambdaC_coef_actual"=MatrixReader,
+                   GenericReader)
+    Read(FilePath(f))
+  }
 }
 
 MatrixReader <- function(x)

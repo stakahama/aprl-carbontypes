@@ -10,8 +10,9 @@ library(Rfunctools)
 library(RJSONIO)
 library(pryr)
 library(ggplot2)
-theme_set(theme_bw())
+## theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
+PopulateEnv("fig", "config_fig.R")
 PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_carbonprod.R", "lib/lib_metrics.R"))
 
 ## -----------------------------------------------------------------------------
@@ -50,11 +51,37 @@ moles.lf <- ldply(moles.molec, CarbonInnerProd, Y, .id="phase")
 frac.lf <- moles.lf %>% group_by(phase, time) %>%
   mutate(frac=nC/sum(nC))
 
+## cumul <- frac.lf %>% group_by(phase, time) %>%
+##   arrange(desc(frac)) %>% mutate(cumul=cumsum(frac)) %>%
+##   slice(with(list(x=which(cumul < 1)), c(x, tail(x,1)+1)))
+
+cumul <- frac.lf %>% filter(phase=="aer") %>%
+  group_by(clabel) %>%
+  summarize(nC=sum(nC)) %>%
+  arrange(desc(nC))
+
+GGTheme()
+
 ggp <- ggplot(frac.lf)+
   geom_area(aes(time, frac, fill=clabel))+
   facet_grid(phase~.)+
   scale_x_continuous(expand=c(0, 0))+
-  scale_y_continuous(expand=c(0, 0))
+  scale_y_continuous(expand=c(0, 0))+
+  labs(x="Hour", y="Mass fraction")
+
+
+theme_update(strip.text=element_text(size=14),
+             strip.text.x=element_text(vjust=1),
+             strip.text.y=element_text(vjust=.5, angle=90), #vjust=0
+             strip.background=element_rect(color=NA, fill=NA, linetype=0),
+             axis.text=element_text(size=12),
+             axis.text.x=element_text(margin=margin(.5, .5, .5, .5, "lines")),
+             axis.text.y=element_text(angle=90, hjust=.5, margin=margin(.5, .5, .5, .5, "lines")),
+             axis.ticks.length = unit(-0.3, "lines"),
+             panel.border=element_rect(color=1, fill=NA),
+             panel.grid.major = element_blank(),
+             panel.grid.minor = element_blank())
+
 
 pdf(FilePath("plot_ctype_tseries"), width=10, height=7)
 print(ggp)

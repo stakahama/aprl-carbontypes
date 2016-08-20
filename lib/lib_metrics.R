@@ -60,29 +60,36 @@ Calculate2 <- function(n, X, Y, Theta, gamma, zFG, Lambda, zeta, cOM, i=TRUE, k=
   if(isTRUE(j)) j <- colnames(Theta)
 
   ## extract
-  Theta.s <- sweep(Theta[k,j], 2, gamma[j],`*`)
-  nC.s <- n[i]*rowSums(sweep(Y[i,k], 2, sign(rowSums(Theta.s)), `*`))
-  Y.s <- n[i]*Y[i,k]
+  Y.s <- n[i]*sweep(Y[i,k], 2, sign(Theta[k,j] %*% gamma[j]), `*`)
+  nC.s <- rowSums(Y.s)
+  nC.c <- colSums(Y.s)
   X.s <- n[i]*X[i,j]
   gamma.s <- gamma[j]
   zFG.s <- zFG[j]
   Lambda.s <- Lambda[heteroatoms, j] # heteroatoms lexically scoped
   zeta.s <- zeta[k]
 
+  atoms.g <- sweep(Lambda.s, 2, colSums(X.s), "*")
+  atomsmass.g <- am[rownames(atoms.g)]*atoms.g
+
   ## compute
   if(is.numeric(lambdaC)) {
-    lambdaC.s <- lambdaC[j]
+    lambdaC.s <- setNames(lambdaC[j], j)
     lambdaC.s[] <- replace(lambdaC.s, is.na(lambdaC.s), 0)
-    nC.s <- sum(X.s %*% lambdaC.s)
+    nC.s <- X.s %*% lambdaC.s
+    nC.c <- sum(nC.s)
+    OC.c <- am["C"]*nC.c
+    ## OM.c <- sum(colSums(X.s) %*% t(am[rownames(Lambda.s)]*Lambda.s)) + OC.c
+    OM.c <- sum(atomsmass.g) + sum(OC.c)
+    names(nC.c) <- names(OC.c) <- names(OM.c) <- "X"
+  } else {
+    OC.c <- am["C"]*nC.c
+    OM.c <- nC.c*cOM[names(nC.c)]
   }
 
   nC.total <- sum(nC.s)
-  nC.c <- colSums(n[i]*sweep(Y[i,k], 2, sign(rowSums(Theta.s)), `*`))
-  OC.c <- am["C"]*nC.c
-  OM.c <- nC.c*cOM[names(nC.c)]
-  atoms.g <- sweep(Lambda.s, 2, colSums(X.s), "*")
   atomr.g <- atoms.g/nC.total
-  OM.OC.g <- colSums(am[rownames(atomr.g)]*atoms.g)/sum(OC.c)
+  OM.OC.g <- colSums(atomsmass.g)/sum(OC.c)
 
   OSC.true <- sum(sweep(Y.s, 2, zeta.s, "*"))/nC.total
   ## OSC.approx <- sum(X.s %*% zFG.s)/nC.total
@@ -106,7 +113,7 @@ Calculate2 <- function(n, X, Y, Theta, gamma, zFG, Lambda, zeta, cOM, i=TRUE, k=
                                  check.names=FALSE)) %>%
     filter(group %in% group.subset)
 
-  ## OSC
+  ## OSC overall
   oxstate <- with(list(x=c(true=OSC.true, approx=OSC.approx)),
                   data.frame(method=names(x), value=x))
 
@@ -115,15 +122,8 @@ Calculate2 <- function(n, X, Y, Theta, gamma, zFG, Lambda, zeta, cOM, i=TRUE, k=
 
 }
 
-CarbonTypeMass <- function(carbon.attr) {
-  ##
-  id <- "ctype" #c("type", "ctype")
-  ##
-  carbon.mass <- unique(carbon.attr[,c(id, heteroatoms)])
-  carbon.mass[heteroatoms] <- sweep(carbon.mass[heteroatoms], 2, am[heteroatoms], "*")
-  carbon.mass[["C"]] <- am["C"]
-  carbon.mass[["OM"]] <- carbon.mass[["C"]]+rowSums(carbon.mass[heteroatoms])
-  ##
-  carbon.mass
 
+Ctypemass <- function(Theta, gamma, Lambda) {
+  ## approximate
+  am["C"]+(Theta %*% (t(Lambda[heteroatoms,]) * gamma) %*% am[heteroatoms])[,1]
 }

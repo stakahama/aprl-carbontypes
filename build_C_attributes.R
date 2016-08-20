@@ -7,45 +7,47 @@ library(reshape2)
 library(Rfunctools)
 library(pryr)
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSC.R"))
+PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSC.R", "lib/lib_metrics.R"))
 
 ## -----------------------------------------------------------------------------
 
 fulltable <- ReadFile("fulltable")
 adjtable <- ReadFile("adjacent")
+load(FilePath("matrices"))
+load(FilePath("matrices_2"))
 
 ## -----------------------------------------------------------------------------
 
-idvars <- c("compound", "atom")#, "type")
-
-## attached groups
 wf.groups <- AddCtypeWide(fulltable)
 
-## attached atoms
-wf.atoms <- adjtable %>% filter(Shorttype(atom1_type)=="C") %>%
-  rename(atom=atom1) %>%
-  mutate(shorttype2=Shorttype(atom2_type)) %>%
-  do(dcast(., compound+atom~shorttype2, length, value.var="atom2"))
-avars <- sort(setdiff(names(wf.atoms), idvars))
-wf.atoms$ctype2 <- apply(wf.atoms[, avars], 1, Int2Key)
+## -----------------------------------------------------------------------------
+
+## attached carbon + heteroatoms
+##   don't use this for estimation of mass since some atoms
+##   (including heteroatoms) are double-counted
+
+atoms <- adjtable %>% filter(Shorttype(atom1_type)=="C") %>%
+  rename(atom=atom1) %>% mutate(atom2_type=Shorttype(atom2_type)) %>%
+  dcast(., compound+atom~atom2_type, length, value.var="atom2")
+
+merged <- full_join(wf.groups, atoms)
 
 ## -----------------------------------------------------------------------------
 
-merged <- full_join(wf.groups %>% select_(.dots=c(idvars, "type", "ctype")),
-                    wf.atoms %>% select_(.dots=c(idvars, "ctype2")))
+merged$ctype2 <- apply(merged[,names(am)], 1, Int2Key)
+
 atypes <- unique(merged %>% select(type, ctype, ctype2))
 dups <- with(atypes, ctype[duplicated(ctype)])
-stopifnot(length(dups)==3)
+stopifnot(length(dups)==3) # ester, peroxide, ...
+
+merged$ctype2 <- NULL
 
 ## -----------------------------------------------------------------------------
 
-carbon.attr <- full_join(
-  wf.groups %>% select_(.dots=c(idvars, "type", "ctype")),
-  wf.atoms %>% select_(.dots=c(setdiff(names(wf.atoms), "ctype2")))
-)
+id.vars <- c("compound", "atom", "type", "ctype")
 
 carbon.attr <- full_join(
-  carbon.attr,
+  merged[, c(id.vars, setdiff(names(merged), id.vars))],
   ## AtomOSC(osctable)
   AtomOSC(adjtable)
 )

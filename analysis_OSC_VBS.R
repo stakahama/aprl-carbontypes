@@ -48,7 +48,8 @@ examp$logC0bin <- round(examp$logC0)
 
 examp <- examp %>% group_by(logC0bin, OSC, phase) %>% summarize(OC=sum(OC)) %>% ungroup()
 
-ctheme <- tail(colorRampPalette(c("darkblue", "lightgray", "darkorange"))(9), -1)
+ctheme <- setNames(tail(colorRampPalette(c("darkorange", "lightgray", "darkblue"))(9), -1),
+                   unique(examp$OSC))
 
 ggplot(examp %>% mutate(OSC=factor(OSC, rev(sort(unique(OSC))))))+
   geom_bar(aes(logC0bin, OC, fill=OSC),
@@ -56,4 +57,46 @@ ggplot(examp %>% mutate(OSC=factor(OSC, rev(sort(unique(OSC))))))+
   scale_fill_manual(values=ctheme)+
   facet_grid(phase~.)
 
+levs <- with(examp, c("gas", rev(sort(unique(OSC)))))
 
+aer <- full_join(examp %>% filter(phase=="aer") %>%
+                 mutate(OSC=factor(OSC, levs),
+                        phase=NULL),
+                 examp %>% filter(phase=="gas") %>%
+                 mutate(OSC=factor("gas", levs), phase=NULL) %>%
+                 group_by(logC0bin, OSC) %>%
+                 summarize(OC=sum(OC)))
+
+ggp <- ggplot(aer)+
+  geom_bar(aes(logC0bin, OC, fill=OSC), color="black",
+           position="stack", stat="identity")+
+  scale_fill_manual(values=c("white", ctheme))
+
+pdf("outputs/OSC_VBS.pdf", width=8, height=5)
+print(ggp)
+dev.off()
+
+ggplot(aer)+
+  geom_bar(aes(logC0bin, OC, fill=OSC), color="black",
+           position="stack", stat="identity")+
+  scale_fill_manual(values=c("white", ctheme))+
+  lims(y=c(0, 30000))
+
+
+## examp$OSC <- with(examp, factor(OSC, rev(sort(unique(OSC)))))
+
+total <- colSums(acast(examp, OSC~logC0bin, sum, value.var="OC"))
+## sc <- 1/sum(total)
+sc <- 1
+arrays <- dlply(examp, .(phase), function(x) acast(x, OSC~logC0bin, value.var="OC"))
+
+## flipc <- function(x) x[,rev(seq(ncol(x))),drop=FALSE]
+## flipr <- function(x) x[rev(seq(nrow(x))),,drop=FALSE]
+
+pdf("outputs/OSC_VBS.pdf", width=8, height=5)
+par(mfrow=c(1,1))
+barplot(sc*total, col="white")
+barplot(sc*arrays$aer, col=ctheme[rownames(arrays$aer)], add=TRUE)
+legend("topright", rev(names(ctheme)), fill=rev(ctheme), title=expression(OS[C]))
+box()
+dev.off()

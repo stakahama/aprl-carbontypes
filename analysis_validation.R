@@ -6,6 +6,7 @@ library(dplyr)
 library(reshape2)
 library(Rfunctools)
 PopulateEnv("IO", "config_IO.R")
+PopulateEnv("mylib", "lib/lib_metrics.R")
 
 ## -----------------------------------------------------------------------------
 
@@ -13,6 +14,7 @@ load(FilePath("matrices"))
 load(FilePath("matrices_2"))
 
 carbon.attr <- ReadFile("carbonattr")
+molec.attr <- ReadFile("molecattr")
 
 ## -----------------------------------------------------------------------------
 
@@ -22,6 +24,19 @@ plot(X, sweep(Y %*% Theta, 2, gamma, "*"))
 abline(0, 1)
 
 isTRUE(all.equal(X, sweep(Y %*% Theta, 2, gamma, "*")))
+
+## -----------------------------------------------------------------------------
+
+## *** OM ***
+
+mw <- with(molec.attr, setNames(MW, compound))
+cOM <- Ctypemass(Theta, gamma, Lambda)
+
+plot(mw[rownames(Y)], Y %*% cOM[colnames(Y)])
+abline(0, 1)
+
+
+
 
 ## -----------------------------------------------------------------------------
 
@@ -43,6 +58,8 @@ ViewTheta(Theta[with(osc, ctype[zeta != OSC]),])
                                         # ester-containing groups
 ## does not agree per carbon type because of the way esters are defined now,
 ##   but is corrected when summed over a molecule
+
+## -----------------------------------------------------------------------------
 
 ## *** mean carbon oxidation state per molecule ***
 

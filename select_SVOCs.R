@@ -39,4 +39,4 @@ clabels <- with(list(sk=out$ctypes, rest=setdiff(rownames(Theta), out$ctypes)),
 
 cat(toJSON(out), file=FilePath("svoc"))
 
-cat(toJSON(clabels), file=FilePath("clabels"))
+## cat(toJSON(clabels), file=FilePath("clabels"))

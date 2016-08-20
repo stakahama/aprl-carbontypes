@@ -10,14 +10,14 @@ CarbonInnerProd <- function(M, Y) {
        value.name="nC")
 }
 
-CarbonProd <- function(M, Y) {
+CarbonProd <- function(M, Y, ctype="ctype") {
   cmpds <- intersect(names(M), rownames(Y))
   timevec <- index(M)
   M <- coredata(M)
   rownames(M) <- names(timevec) <- sprintf("x%d", seq_along(timevec))
   M.lf <- melt(M[,cmpds,drop=FALSE], varnames=c("time", "compound"), value.name="nmolec")
-  Y.lf <- melt(Y[cmpds,], varnames=c("compound", "clabel"), value.name="nC") %>%
-    mutate(clabel=factor(clabel, sort(levels(clabel))))
+  Y.lf <- melt(Y[cmpds,], varnames=c("compound", ctype), value.name="nC")
+  ## Y.lf[[ctype]] <- factor(Y.lf[[ctype]], sort(levels(Y.lf[[ctype]])))
   full_join(M.lf, Y.lf, by=c("compound")) %>%
     group_by(time) %>% mutate(nC=nC*nmolec, nmolec=NULL) %>%
     ungroup() %>% mutate(time=timevec[time])

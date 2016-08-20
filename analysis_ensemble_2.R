@@ -36,8 +36,7 @@ lambdaC <- list(nominal=ReadFile("lambdaC_coef_nominal"),
 DBind[X, Y, Theta, gamma, zFG, Lambda] <- matrices
 
 zeta <- with(unique(carbon.attr[,c("ctype", "OSC")]), setNames(OSC, ctype))[rownames(Theta)]
-cOM <- with(CarbonTypeMass(carbon.attr), setNames(OM, ctype))[rownames(Theta)]
-amsOSC <- with(carbon.attr, setNames(2*O-H, ctype))[rownames(Theta)]
+cOM <- Ctypemass(Theta, gamma, Lambda)
 
 n.example <- coredata(Slice(moles.molec, decisions$hour))[1,]
 cmpds <- intersect(names(n.example), rownames(Y))
@@ -53,7 +52,13 @@ groups <- setdiff(colnames(X), grep("radical", colnames(X), value=TRUE))
 ## full <- Calculate(n.example, X, Y, Theta, gamma, zFG, Lambda, cmpds, , groups)
 full <- Calculate2(n.example, X, Y, Theta, gamma, zFG, Lambda, zeta, cOM, cmpds, carbons, groups)
 
-amsOSC.est <- sum(Y[cmpds,] %*% amsOSC)/sum(Y[cmpds,])
+## amsOSC.est <- with(list(
+##   atoms=colSums((n.example[cmpds]*X[cmpds,]) %*% t(Lambda[heteroatoms,])),
+##   nC=sum(n.example[cmpds]*Y[cmpds,])
+## ),
+##   unname(2*atoms["O"]/nC-atoms["H"]/nC))
+
+amsOSC.est <- with(full$ratios, 2*sum(`O/C`) - sum(`H/C`))
 
 ## -----------------------------------------------------------------------------
 
@@ -99,7 +104,8 @@ for(.est in names(lambdaC)) {
     star <- Calculate2(n.example, X, Y, Theta, gamma, zFG, Lambda,
                        zeta, cOM, cmpds, ctypes, meas)
     star.h <- Calculate2(n.example, X, Y, Theta, gamma, zFG, Lambda,
-                         zeta, cOM, cmpds, ctypes, meas, lambdaC[[.est]][.label,])
+                         zeta, cOM, cmpds, ctypes, meas,
+                         lambdaC[[.est]][.label,])
 
     out[[.label]] <- star
     out.h[[.label]] <- star.h
@@ -109,7 +115,7 @@ for(.est in names(lambdaC)) {
   ## -----------------------------------------------------------------------------
 
   merged.c <- Multijoin(full, out, out.h, "masses") %>%
-    mutate(clabel=clabels[ctype], ctype=NULL) %>%
+    mutate(clabel=c(clabels, setNames(,"X"))[ctype], ctype=NULL) %>%
     melt(., c("clabel", "meas", "case")) %>%
     group_by(variable) %>%
     arrange(clabel)
@@ -123,7 +129,7 @@ for(.est in names(lambdaC)) {
     full_join(., data.frame(method="approx", meas="AMS", value=amsOSC.est, case=factor("ideal", c("ideal", "estimated")))) %>%
     mutate(method=factor(method, c("true", "approx")))
 
-  saveRDS(list(mass=merged.c, props=merged.g), SprintF("props_file", .est))
+  saveRDS(list(mass=merged.c, props=merged.g, OSC=merged.osc), SprintF("props_file", .est))
 
   ## -----------------------------------------------------------------------------
 
@@ -142,7 +148,7 @@ for(.est in names(lambdaC)) {
   ## -----------------------------------------------------------------------------
 
   ggp.c <- ggplot(merged.c)+
-    facet_grid(variable~case)+
+    facet_grid(variable~case, scale="free_y")+
     geom_bar(aes(meas, value, fill=clabel), stat="identity")
 
   ggp.g <- ggplot(merged.g)+
@@ -171,8 +177,7 @@ for(.est in names(lambdaC)) {
     filter(estimated > 0)
 
   ggp.c <- ggplot(wf.c)+
-    facet_wrap(~variable)+
-    geom_point(aes(ideal, estimated, color=meas))+
+    geom_point(aes(ideal, estimated, color=meas, shape=variable))+
     geom_abline(intercept=0, slope=1)
 
   ggp.g <- ggplot(wf.g)+
