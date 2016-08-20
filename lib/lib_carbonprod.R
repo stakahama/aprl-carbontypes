@@ -25,8 +25,9 @@ CarbonProd <- function(M, Y, ctype="ctype") {
 
 OrderSlice <- function(df) {
   ## add order to compound and carbon types
-  wf <- acast(df, compound~clabel, sum, value.var="nC")
-  levs <- rownames(wf)[order(rowSums(wf), decreasing=TRUE)]
-  df %>% mutate(compound=factor(compound, levs),
-                clabel=factor(clabel, sort(levels(clabel))))
+  wf <- acast(df, compound~ctype, sum, value.var="nC")
+  levs.1 <- rownames(wf)[order(rowSums(wf), decreasing=TRUE)]
+  levs.2 <- levels(df$ctype)
+  df %>% mutate(compound=factor(compound, levs.1),
+                ctype=factor(ctype, levs.2))
 }

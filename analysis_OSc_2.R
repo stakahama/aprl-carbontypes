@@ -8,24 +8,17 @@ library(RJSONIO)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_collapse.R", "lib/lib_constrOptim.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_collapse.R", "lib/lib_constrOptim.R"))
 
 ## -----------------------------------------------------------------------------
 
 matrices <- c(ReadFile("matrices"), ReadFile("matrices_2"))
-
 molec.attr <- ReadFile("molecattr")
-
 DBind[measlist, collapserule] <-
   ReadFile("meas")[c("lambdaC", "collapse")]
-
 svoc <- ReadFile("svoc")$compounds
-
 clabels <- ReadFile("clabels")
-
-
-moles.molec <- ReadTSeries(FilePath("tseries_aer"))
-
+molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 decisions <- as.list(ReadFile("example_1"))
 
 
@@ -50,8 +43,8 @@ for(.loop in c("compound", "mixture")) {
 
   } else {
 
-    cmpds <- intersect(svoc, names(moles.molec))
-    n.example <- coredata(Slice(moles.molec[,cmpds], decisions$hour))[1,]
+    cmpds <- intersect(svoc, names(molec.moles))
+    n.example <- coredata(Slice(molec.moles[,cmpds], decisions$hour))[1,]
 
   }
 

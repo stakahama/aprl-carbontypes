@@ -8,31 +8,25 @@ library(RJSONIO)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_metrics.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_metrics.R"))
 
 ## -----------------------------------------------------------------------------
 
 matrices <- c(ReadFile("matrices"), ReadFile("matrices_2"))
-
 molec.attr <- ReadFile("molecattr")
-
 DBind[measlist, collapserule] <-
   ReadFile("meas")[c("lambdaC", "collapse")]
-
 svoc <- ReadFile("svoc")$compounds
-
 clabels <- ReadFile("clabels")
-
-moles.molec <- ReadTSeries(FilePath("tseries_aer"))
-
+molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 decisions <- as.list(ReadFile("example_1"))
 
 ## -----------------------------------------------------------------------------
 
 DBind[X, Y, Theta, gamma, zFG, Lambda] <- matrices
 
-cmpds <- intersect(names(moles.molec), rownames(Y))
-n.example <- coredata(Slice(moles.molec[,cmpds], decisions$hour))[1,]
+cmpds <- intersect(names(molec.moles), rownames(Y))
+n.example <- coredata(Slice(molec.moles[,cmpds], decisions$hour))[1,]
 
 full <- Calculate(n.example, X, Y, Theta, gamma, zFG, Lambda, cmpds)
 

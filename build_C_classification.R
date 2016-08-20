@@ -14,7 +14,6 @@ PopulateEnv("mylib", c("lib/lib_collapse.R", "lib/lib_constrOptim.R"))
 ## -----------------------------------------------------------------------------
 
 load(FilePath("matrices"))
-
 carbon.attr <- ReadFile("carbonattr")
 
 ## -----------------------------------------------------------------------------

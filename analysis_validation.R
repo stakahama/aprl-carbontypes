@@ -35,8 +35,7 @@ cOM <- Ctypemass(Theta, gamma, Lambda)
 plot(mw[rownames(Y)], Y %*% cOM[colnames(Y)])
 abline(0, 1)
 
-
-
+all.equal(mw[rownames(Y)], (Y %*% cOM[colnames(Y)])[,1])
 
 ## -----------------------------------------------------------------------------
 

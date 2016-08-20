@@ -10,7 +10,6 @@ PopulateEnv("mylib", "lib/lib_collapse.R")
 ## -----------------------------------------------------------------------------
 
 DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
-
 molec.attr <- ReadFile("molecattr")
 
 ## -----------------------------------------------------------------------------

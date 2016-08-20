@@ -47,8 +47,7 @@ merged$ctype2 <- NULL
 id.vars <- c("compound", "atom", "type", "ctype")
 
 carbon.attr <- full_join(
-  merged[, c(id.vars, setdiff(names(merged), id.vars))],
-  ## AtomOSC(osctable)
+  merged[, c(id.vars, names(am))],
   AtomOSC(adjtable)
 )
 

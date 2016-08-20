@@ -12,32 +12,24 @@ library(ggplot2)
 library(gridExtra)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_carbonprod.R", "lib/lib_metrics.R", "lib/lib_units.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_carbonprod.R", "lib/lib_metrics.R", "lib/lib_units.R"))
 
 ## -----------------------------------------------------------------------------
 
 DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
-
 DBind[measlist, collapserule] <-
   ReadFile("meas")[c("lambdaC", "collapse")]
-
 DBind[,,merged.osc] <- ReadFile(SprintF("props_file", "actual"))
-
-
-moles.molec <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
+molec.moles <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
                       ReadTSeries)
-
 clabels <- ReadFile("clabels")
-
 carbon.attr <- ReadFile("carbonattr")
-
 molec.attr <- ReadFile("molecattr")
-
 decisions <- as.list(ReadFile("example_1"))
 
 ## -----------------------------------------------------------------------------
 
-examp <- ldply(moles.molec, function(X, i, Y)
+examp <- ldply(molec.moles, function(X, i, Y)
   CarbonProd(Slice(X, i), Y) %>% mutate(time=NULL),
   decisions$hour, Y, .id="phase")
 

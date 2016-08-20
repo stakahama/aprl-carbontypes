@@ -9,36 +9,28 @@ library(gridExtra)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_metrics.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_metrics.R"))
 
 ## -----------------------------------------------------------------------------
 
 matrices <- c(ReadFile("matrices"), ReadFile("matrices_2"))
-
 molec.attr <- ReadFile("molecattr")
-
 DBind[measlist, collapserule] <-
   ReadFile("meas")[c("lambdaC", "collapse")]
-
 clabels <- ReadFile("clabels")
-
 carbon.attr <- ReadFile("carbonattr")
-
-moles.molec <- ReadTSeries(FilePath("tseries_aer"))
-
+molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 decisions <- as.list(ReadFile("example_1"))
-
 lambdaC <- list(nominal=ReadFile("lambdaC_coef_nominal"),
                 actual=ReadFile("lambdaC_coef_actual"))
-
 DBind[X, Y, Theta, gamma, zFG, Lambda] <- matrices
 
 ## -----------------------------------------------------------------------------
 
-cmpds <- intersect(names(moles.molec), rownames(Y))
+cmpds <- intersect(names(molec.moles), rownames(Y))
 
-time <- index(moles.molec)
-n <- coredata(moles.molec)
+time <- index(molec.moles)
+n <- coredata(molec.moles)
 
 nC <- n[,cmpds] %*% rowSums(Y[cmpds,])
 fg <- n[,cmpds] %*% X[cmpds,]

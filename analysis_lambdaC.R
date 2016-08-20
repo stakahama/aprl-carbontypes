@@ -42,20 +42,15 @@ Vec2Mat <- function(x, column="Y") {
 ## -----------------------------------------------------------------------------
 
 matrices <- ReadFile("matrices")
-
 molec.attr <- ReadFile("molecattr")
-
 DBind[measlist, collapserule] <-
   ReadFile("meas")[c("lambdaC", "collapse")]
-
 svoc <- ReadFile("svoc")$compounds
 
 ## -----------------------------------------------------------------------------
 
 DBind[measlist.collapsed, matrices.collapsed] <-
   AggGroups(collapserule, measlist, matrices)
-
-## -----------------------------------------------------------------------------
 
 ## -----------------------------------------------------------------------------
 

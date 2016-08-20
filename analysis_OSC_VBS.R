@@ -12,21 +12,16 @@ library(pryr)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_carbonprod.R", "lib/lib_metrics.R", "lib/lib_units.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_carbonprod.R", "lib/lib_metrics.R", "lib/lib_units.R"))
 
 ## -----------------------------------------------------------------------------
 
 DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
-
-moles.molec <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
-                      ReadTSeries)
-
+molec.moles <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
+                      ReadMicromolm3)
 clabels <- ReadFile("clabels")
-
 carbon.attr <- ReadFile("carbonattr")
-
 molec.attr <- ReadFile("molecattr")
-
 decisions <- as.list(ReadFile("example_1"))
 
 ## -----------------------------------------------------------------------------
@@ -40,7 +35,7 @@ carbon.attr$clabel <- clabels[carbon.attr$ctype]
 
 examp <- ldply(moles.molec, function(x, i, Y) CarbonProd(Slice(x, i), Y),
                decisions$hour, Y, .id="phase") %>%
-  mutate(OC=am["C"]*ppb2micromol(nC), time=NULL)
+  mutate(OC=am["C"]*nC, time=NULL)
 
 examp <- left_join(examp, subset(molec.attr,,c(compound, logC0)))
 examp <- left_join(examp, subset(carbon.attr,,c(clabel, OSC)))

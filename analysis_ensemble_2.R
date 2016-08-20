@@ -9,25 +9,18 @@ library(gridExtra)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_metrics.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_metrics.R"))
 
 ## -----------------------------------------------------------------------------
 
 matrices <- c(ReadFile("matrices"), ReadFile("matrices_2"))
-
 molec.attr <- ReadFile("molecattr")
-
 DBind[measlist, collapserule] <-
   ReadFile("meas")[c("lambdaC", "collapse")]
-
 clabels <- ReadFile("clabels")
-
 carbon.attr <- ReadFile("carbonattr")
-
-moles.molec <- ReadTSeries(FilePath("tseries_aer"))
-
+molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 decisions <- as.list(ReadFile("example_1"))
-
 lambdaC <- list(nominal=ReadFile("lambdaC_coef_nominal"),
                 actual=ReadFile("lambdaC_coef_actual"))
 
@@ -38,7 +31,7 @@ DBind[X, Y, Theta, gamma, zFG, Lambda] <- matrices
 zeta <- with(unique(carbon.attr[,c("ctype", "OSC")]), setNames(OSC, ctype))[rownames(Theta)]
 cOM <- Ctypemass(Theta, gamma, Lambda)
 
-n.example <- coredata(Slice(moles.molec, decisions$hour))[1,]
+n.example <- coredata(Slice(molec.moles, decisions$hour))[1,]
 cmpds <- intersect(names(n.example), rownames(Y))
 ## carbons <- names(sort(colSums(n.example[cmpds] * Y[cmpds,]), decreasing=TRUE)[decisions$ncarbons])
 carbons <- rownames(Theta)

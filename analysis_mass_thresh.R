@@ -10,25 +10,22 @@ library(dplyr)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_units.R", "lib/lib_metrics.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_metrics.R"))
 
 ## -----------------------------------------------------------------------------
 
 DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
-
 carbon.attr <- ReadFile("carbonattr")
 molec.attr <- ReadFile("molecattr")
-
-moles.molec <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
+molec.moles <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
                       ReadTSeries)
-
 decisions <- as.list(ReadFile("example_1"))
 
 ## -----------------------------------------------------------------------------
 
 mw <- with(molec.attr, setNames(MW, compound))
-common <- intersect(names(moles.molec$aer), molec.attr$compound)
-n <- unclass(Slice(moles.molec$aer, decisions$hour))[1,common]
+common <- intersect(names(molec.moles$aer), molec.attr$compound)
+n <- unclass(Slice(molec.moles$aer, decisions$hour))[1,common]
 m <- ppb2microg(n, mw)
 Yp <- n*Y[common,]
 

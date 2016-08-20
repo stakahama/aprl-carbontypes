@@ -9,16 +9,13 @@ library(RJSONIO)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_collapse.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_collapse.R"))
 
 ## -----------------------------------------------------------------------------
 
 DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
-
 molec.attr <- ReadFile("molecattr")
-
 measlist <- ReadFile("meas")$lambdaC
-
 svoc <- ReadFile("svoc")$compounds
 
 ## -----------------------------------------------------------------------------

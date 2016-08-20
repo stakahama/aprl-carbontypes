@@ -20,3 +20,11 @@ Scripts:
 
 1. build\_ssp.sh
 2. build\_attributes.sh
+
+
+## Notes
+
+- This is the working directory.
+- `options(stringsAsFactors=FALSE)` is the default.
+- `config_IO.R` facilitates I/O across files
+

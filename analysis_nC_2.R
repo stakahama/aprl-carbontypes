@@ -11,20 +11,15 @@ library(pryr)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_io.R", "lib/lib_carbonprod.R"))
+PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_carbonprod.R"))
 
 ## -----------------------------------------------------------------------------
 
 DBind[svoc, sk, sj] <- ReadFile("svoc")
-
 DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
-
-moles.molec <- ReadTSeries(FilePath("tseries_aer"))
-
+molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 clabels <- ReadFile("clabels")
-
 meas <- ReadFile("meas")$lambdaC
-
 decisions <- as.list(ReadFile("example_1"))
 
 ## -----------------------------------------------------------------------------
@@ -49,7 +44,7 @@ Ystar <- function(Y, Theta, gamma) {
   Y
 }
 
-example <- Slice(moles.molec, decisions$hour)
+example <- Slice(molec.moles, decisions$hour)
 cmpds <- names(example)[example > 1e-3]
 
 tiers <- c(head(meas, 1), Map(setdiff, tail(meas, -1), head(meas, -1)))

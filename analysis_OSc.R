@@ -13,12 +13,9 @@ PopulateEnv("mylib", c("lib/lib_collapse.R", "lib/lib_constrOptim.R"))
 ## -----------------------------------------------------------------------------
 
 matrices <- c(ReadFile("matrices"), ReadFile("matrices_2"))
-
 molec.attr <- ReadFile("molecattr")
-
 DBind[measlist, collapserule] <-
   ReadFile("meas")[c("lambdaC", "collapse")]
-
 svoc <- ReadFile("svoc")$compounds
 
 ## -----------------------------------------------------------------------------
