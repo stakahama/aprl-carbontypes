@@ -13,31 +13,17 @@ PopulateEnv("mylib", c("lib/lib_collapse.R", "lib/lib_constrOptim.R"))
 
 ## -----------------------------------------------------------------------------
 
-CountMethod <- function(ni=1, nC, Theta, Y, gamma, J.s) {
-  if(length(ni)==1)
-    ni <- setNames(rep(ni, nrow(Y)), rownames(Y))
-  ## 1/(gamma*sum(ni*nC)) * (ni %*% Y %*% (1/rowSums(Theta)))
-  nC.s <- nC
-  lambda.C <- setNames(numeric(length(J.s)), J.s)
-  for(j in J.s) {
-    k <- Theta[,j] > 0
-    ## gamma.s <- gamma[j]
-    Theta.s <- Theta[k,,drop=FALSE]
-    Y.s <- Y[,k,drop=FALSE]
-    lambda.C[j] <- 1/(sum(ni %*% Y.s)) *
-      (ni %*% Y.s %*% (1/(Theta.s %*% gamma)))
-  }
-  lambda.C
-}
-
 CountMethod2 <- function(Theta, gamma, J.s) {
-  lambda.C <- setNames(numeric(length(J.s)), J.s)
+  lambdaC <- setNames(numeric(length(J.s)), J.s)
+  lambdaC.se <- lambdaC
   for(j in J.s) {
     k <- Theta[,j] > 0
     Theta.s <- Theta[k,,drop=FALSE]
-    lambda.C[j] <- mean(1/(Theta.s %*% gamma))
+    reciprocal <- 1/(Theta.s %*% gamma)
+    lambdaC[j] <- mean(reciprocal)
+    lambdaC.se[j] <- sd(reciprocal)/sqrt(length(which(k)))
   }
-  lambda.C
+  list(lambdaC, lambdaC.se)
 }
 
 ## (need for phenol in set4)
@@ -78,8 +64,8 @@ DBind[measlist.collapsed, matrices.collapsed] <-
 matrices.original <- matrices
 measlist.original <- measlist
 
-loopvars <- list(c("matrices.original", "measlist.original"),
-                 c("matrices.collapsed", "measlist.collapsed"))
+loopvars <- list(c("matrices.original", "measlist.original", "original"),
+                 c("matrices.collapsed", "measlist.collapsed", "collapsed"))
 
 for(.elem in loopvars) {
 
@@ -118,11 +104,9 @@ for(.elem in loopvars) {
     ## calculation of lambda
 
     lambdaC <- list()
-    ## lambdaC$count <- CountMethod(1, nC.s, Theta, Y[svoc,], gamma, meas)
-    lambdaC$count <- CountMethod2(Theta, gamma, meas)
+    DBind[lambdaC$count, count.se] <- CountMethod2(Theta, gamma, meas)
     lambdaC$solve <- ApproxSolve(X.s, Vec2Mat(rowSums(Y.s)))[,1]
     lambdaC$constr <- BoundedLsq(rowSums(Y.s), X.s, 0, 1)
-    ## lambdaC$solve.rowsum <- rowSums(Phi$solve)
     lambdaC$constr.rowsum <- rowSums(Phi$constr)
     lambdaC$ginv.rowsum <- rowSums(Phi$ginv)
 
@@ -179,7 +163,12 @@ for(.elem in loopvars) {
     saveRDS(Phi, file=SprintF("Phi", .label))
 
     write.csv(ResetIndex(as.data.frame(lambdaC.mat), "method"),
-              SprintF("lambdaC", .label), row.names=FALSE)
+              SprintF("lambdaC", .label),
+              row.names=FALSE)
+
+    write.csv(ResetIndex(rbind(mean=lambdaC$count, se=count.se), "stat"),
+              SprintF("lambdaC_count", .label),
+              row.names=FALSE)
 
     ## -----------------------------------------------------------------------------
 

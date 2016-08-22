@@ -15,6 +15,10 @@ Scripts:
 
 * build\_*: data prep (for constructing master tables). read/write to data/
 * analysis\_*: analysis. write to outputs/
+* select\_*: selection of example
+* config\_: configurations
+* figures\_*: production figures
+
 
 ## Scripts
 
@@ -26,5 +30,5 @@ Scripts:
 
 - This is the working directory.
 - `options(stringsAsFactors=FALSE)` is the default.
-- `config_IO.R` facilitates I/O across files
+- "config_IO.R" facilitates I/O across files
 

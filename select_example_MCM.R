@@ -1,5 +1,4 @@
 
-
 options(stringsAsFactors=FALSE)
 
 library(zoo)
@@ -10,6 +9,7 @@ library(Rfunctools)
 library(RJSONIO)
 library(pryr)
 library(ggplot2)
+library(grid)
 ## theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
 PopulateEnv("fig", "config_fig.R")
@@ -48,16 +48,55 @@ frac.lf <- moles.lf %>% group_by(phase, time) %>%
 ##   summarize(nC=sum(nC)) %>%
 ##   arrange(desc(nC))
 
+levs <- c(Gas="gas", Aerosol="aer")
+frac.lf$phase <- with(frac.lf, factor(phase, levs, names(levs)))
+
+lett <- data.frame(letter=sprintf("%s)", letters[1:2]),
+                   phase=factor(names(levs), names(levs)))
+
 ggp <- ggplot(frac.lf)+
   geom_area(aes(time, frac, fill=clabel), size=.1, color="white")+
   facet_grid(phase~.)+
   scale_x_continuous(expand=c(0, 0))+
   scale_y_continuous(expand=c(0, 0))+
-  labs(x="Hour", y="Mass fraction")
+  labs(x="Hour", y="Carbon fraction")+
+  geom_text(aes(x=Inf, y=-Inf, label=letter), data=lett)+
+  theme(panel.margin = unit(.8, "lines"))+
+  scale_fill_discrete(name="Carbon type")
 
-pdf(FilePath("plot_ctype_tseries"), width=10, height=7)
+pdf(FilePath("plot_ctype_tseries"), width=7, height=5.5)
 print(ggp)
 dev.off()
+
+
+## -----------------------------------------------------------------------------
+
+example.aer <- Slice(molec.moles$aer, decisions$hour)
+example.aer <- CarbonProd(example.aer, Y) %>% mutate(ctype=factor(ctype))
+example.aer <- OrderSlice(example.aer) %>% rename(clabel=ctype)
+
+example.subset <- example.aer %>%
+  filter(unclass(compound) <= decisions$ncompounds)
+
+cumul <- example.subset %>% group_by(clabel) %>% summarize(nC=sum(nC)) %>%
+  ungroup() %>% arrange(desc(nC)) %>% mutate(cfrac=cumsum(nC)/sum(nC))
+
+clabel.keep <- with(cumul, clabel[1:15])
+
+ggp <- ggplot(example.subset %>%
+              filter(clabel %in% clabel.keep) %>%
+              arrange(as.numeric(clabel))) +
+  geom_bar(aes(compound, nC, fill=clabel), size=.1, col="white", stat="identity")+
+  theme(axis.text.x=element_text(angle=60, hjust=1))+
+  labs(x="", y=expression(n[C]~(mu*mole/m^3)))+
+  scale_y_continuous(limits=c(0, 4), expand=c(0, 0))+
+  scale_fill_discrete("Carbon\ntype")
+
+pdf(FilePath("plot_compound_abundance"), width=7, height=5.5)
+print(ggp)
+dev.off()
+
+stop()
 
 ## -----------------------------------------------------------------------------
 
@@ -83,30 +122,5 @@ ggp <- ggplot(osc.lf %>% mutate(OSC=factor(OSC, levs)))+
   scale_y_continuous(expand=c(0, 0))
 
 pdf(FilePath("plot_OSC_tseries"), width=10, height=7)
-print(ggp)
-dev.off()
-
-## -----------------------------------------------------------------------------
-
-example.aer <- Slice(molec.moles$aer, decisions$hour)
-example.aer <- CarbonProd(example.aer, Y) %>% mutate(ctype=factor(ctype))
-example.aer <- OrderSlice(example.aer) %>% rename(clabel=ctype)
-
-example.subset <- example.aer %>%
-  filter(unclass(compound) <= decisions$ncompounds) %>%
-
-## cumul <- example.subset %>% group_by(clabel) %>% summarize(nC=sum(nC)) %>%
-##   ungroup() %>% arrange(desc(nC)) %>% mutate(cfrac=cumsum(nC)/sum(nC))
-
-clabel.keep <- with(cumul, clabel[1:15])
-
-ggp <- ggplot(example.subset %>%
-              filter(clabel %in% clabel.keep) %>%
-              arrange(as.numeric(clabel))) +
-   geom_bar(aes(compound, nC, fill=clabel), size=.1, col="white", stat="identity")+
-   theme(axis.text.x=element_text(angle=60, hjust=1))+
-   labs(x="", y=expression(n[C]~(mu*mole/m^3)))
-
-pdf(FilePath("plot_compound_abundance"), width=10, height=7)
 print(ggp)
 dev.off()

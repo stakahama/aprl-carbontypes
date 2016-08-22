@@ -21,6 +21,7 @@ FilePath <- function(f) {
     "plot_nC_fit"="outputs/lambdaC_nC_%s.pdf",
     "Phi"="outputs/lambdaC_Phi_%s.rds",
     "lambdaC"="outputs/lambdaC_values_%s.csv",
+    "lambdaC_count"="outputs/lambdaC_count_%s.csv",
     "lmfit"="outputs/lambdaC_lmfit_%s.rds",
     ## OSC
     "plot_OSC"="outputs/OSC_OSC_%s_%s.pdf",
@@ -70,8 +71,8 @@ ReadFile <- function(f, ...) {
   } else {
     Read <- switch(f,
                    "simpol"=MatrixReader,
-                   "lambdaC_coef_nominal"=MatrixReader,
-                   "lambdaC_coef_actual"=MatrixReader,
+                   ## "lambdaC_coef_nominal"=MatrixReader,
+                   ## "lambdaC_coef_actual"=MatrixReader,
                    GenericReader)
     Read(FilePath(f))
   }

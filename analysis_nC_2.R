@@ -9,9 +9,10 @@ library(Rfunctools)
 library(RJSONIO)
 library(pryr)
 library(ggplot2)
-theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
+PopulateEnv("fig", "config_fig.R")
 PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_carbonprod.R"))
+GGTheme()
 
 ## -----------------------------------------------------------------------------
 
@@ -45,7 +46,7 @@ Ystar <- function(Y, Theta, gamma) {
 }
 
 example <- Slice(molec.moles, decisions$hour)
-cmpds <- names(example)[example > 1e-3]
+cmpds <- intersect(names(example), rownames(Y))
 
 tiers <- c(head(meas, 1), Map(setdiff, tail(meas, -1), head(meas, -1)))
 meas.full <- c(tiers, list("full"=colnames(Theta)))
@@ -68,16 +69,23 @@ nC.s$clabel <- factor(nC.s$clabel, clabel.levs)
 wf <- acast(nC.s, clabel~tier, value.var="nC")
 wf[] <- apply(wf, 2, cumsum)
 wf[,"full"] <- wf[,"full"]-rowSums(wf[,names(meas)])
-colnames(wf) <- c(names(meas), "rest")
+## colnames(wf) <- c(names(meas), "rest")
 
 wf[] <- wf/sum(wf[nrow(wf),]) # normalize
-lf <- melt(wf, c("clabel", "tier"), value.name="cumsum")
+lf <- melt(wf, c("clabel", "tier"), value.name="cumsum") %>%
+  mutate(clabel=factor(clabel, clabel.levs))
+
+
+levels(lf$tier) <- Capitalize(levels(lf$tier))
 
 ggp <- ggplot(lf)+
   geom_bar(aes(clabel, cumsum, fill=tier), stat="identity", position="stack")+
   theme(axis.text.x=element_text(angle=60, hjust=1))+
-  scale_y_continuous(limits=c(0, 1), expand=c(0, 0))
+  scale_y_continuous(limits=c(0, 1), expand=c(0, 0))+
+  labs(x="Carbon type", y="Cumulative carbon fraction")+
+  theme(axis.text.x=element_text(size=10))+
+  scale_fill_brewer(name="", palette = "Set1")
 
-pdf(FilePath("plot_nC_cumsum"), width=12, height=7)
+pdf(FilePath("plot_nC_cumsum"), width=9, height=6)
 print(ggp)
 dev.off()

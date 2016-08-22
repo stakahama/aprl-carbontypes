@@ -34,23 +34,11 @@ cOM <- Ctypemass(Theta, gamma, Lambda)
 
 n.example <- coredata(Slice(molec.moles, decisions$hour))[1,]
 cmpds <- intersect(names(n.example), rownames(Y))
-## carbons <- names(sort(colSums(n.example[cmpds] * Y[cmpds,]), decreasing=TRUE)[decisions$ncarbons])
 carbons <- rownames(Theta)
 
-## groups <- setdiff(names(which(apply(X[cmpds,] > 0, 2, any))),
-##                   grep("radical", colnames(X), value=TRUE))
-## groups <- setdiff(names(which(apply(Theta[carbons,] > 0, 2, any))),
-##                   grep("radical", colnames(X), value=TRUE))
 groups <- setdiff(colnames(X), grep("radical", colnames(X), value=TRUE))
 
-## full <- Calculate(n.example, X, Y, Theta, gamma, zFG, Lambda, cmpds, , groups)
 full <- Calculate2(n.example, X, Y, Theta, gamma, zFG, Lambda, zeta, cOM, cmpds, carbons, groups)
-
-## amsOSC.est <- with(list(
-##   atoms=colSums((n.example[cmpds]*X[cmpds,]) %*% t(Lambda[heteroatoms,])),
-##   nC=sum(n.example[cmpds]*Y[cmpds,])
-## ),
-##   unname(2*atoms["O"]/nC-atoms["H"]/nC))
 
 amsOSC.est <- with(full$ratios, 2*sum(`O/C`) - sum(`H/C`))
 
@@ -124,63 +112,5 @@ for(.est in names(lambdaC)) {
     mutate(method=factor(method, c("true", "approx")))
 
   saveRDS(list(mass=merged.c, props=merged.g, OSC=merged.osc), SprintF("props_file", .est))
-
-  ## -----------------------------------------------------------------------------
-
-  agg.c <- acast(merged.c %>% filter(meas=="full"), clabel~variable, sum)
-
-  agg.g <- acast(merged.g %>% filter(meas=="full"), group~variable, sum)
-
-  saveRDS(list(mass=apply(agg.c, 2, CumsumDF, "clabel"), props=apply(agg.g, 2, CumsumDF, "group")),
-          SprintF("tables_props_cumsum", .est))
-
-  pdf(SprintF("plot_props_cumsum", .est), width=12, height=6)
-  PlotCumsums(agg.c)
-  PlotCumsums(agg.g)
-  dev.off()
-
-  ## -----------------------------------------------------------------------------
-
-  ggp.c <- ggplot(merged.c)+
-    facet_grid(variable~case, scale="free_y")+
-    geom_bar(aes(meas, value, fill=clabel), stat="identity")
-
-  ggp.g <- ggplot(merged.g)+
-    facet_grid(variable~case, scale="free_y")+
-    geom_bar(aes(meas, value, fill=group), stat="identity")
-
-  ggp.osc <- ggplot(merged.osc)+
-    facet_grid(.~case)+
-    geom_bar(aes(meas, value, fill=method), stat="identity", position="dodge")
-
-  pdf(SprintF("plot_props", .est), width=20, height=7)
-  print(grid.arrange(ggp.c, ggp.g, ggp.osc, ncol=3))
-  dev.off()
-
-  ## -----------------------------------------------------------------------------
-
-  wf <- acast(merged.c %>% filter(case=="ideal"), variable~meas, sum)
-  recovery <- wf/wf[,"full"]
-
-  print(recovery)
-
-  wf.c <- dcast(merged.c, variable+meas~case, sum) %>%
-    filter(estimated > 0)
-
-  wf.g <- dcast(merged.g, variable+meas~case, sum) %>%
-    filter(estimated > 0)
-
-  ggp.c <- ggplot(wf.c)+
-    geom_point(aes(ideal, estimated, color=meas, shape=variable))+
-    geom_abline(intercept=0, slope=1)
-
-  ggp.g <- ggplot(wf.g)+
-    facet_wrap(~variable)+
-    geom_point(aes(ideal, estimated, color=meas))+
-    geom_abline(intercept=0, slope=1)
-
-  pdf(SprintF("plot_props_scatter", .est), width=16, height=7)
-  print(grid.arrange(ggp.c, ggp.g, ncol=2))
-  dev.off()
 
 }

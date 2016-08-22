@@ -38,13 +38,17 @@ cumul <- mass %>%
 
 ## with(cumul, plot(value, type="o"))
 
-clabel.keep <- with(cumul, clabel[1:20])
+clabel.levs <- with(cumul, clabel[1:20])
 
-mass <- mass %>% filter(clabel %in% clabel.keep)
+mass <- mass %>% filter(clabel %in% clabel.levs) %>%
+  mutate(clabel=factor(clabel, sort(as.integer(clabel.levs))))
 
-ggplot(mass)+
-  geom_bar(aes(meas, value, fill=clabel), stat="identity")+
-  facet_grid(.~variable)
+## ggplot(mass)+
+##   geom_bar(aes(meas, value, fill=clabel), stat="identity")+
+##   facet_grid(.~variable)
+
+meas.levs <- with(mass, setNames(sort(unique(meas)),  Capitalize(sort(unique(meas)))))
+mass$meas <- factor(mass$meas, meas.levs, names(meas.levs))
 
 ## -----------------------------------------------------------------------------
 
@@ -57,17 +61,22 @@ cumul <- omoc %>%
   filter(meas=="full") %>% mutate(meas=NULL, variable=NULL) %>%
   arrange(desc(value)) %>% mutate(value=round(cumsum(value)/sum(value), 2))
 
-group.keep <- with(cumul, group[1:8])
+## group.keep <- with(cumul, group[1:8])
 
-atomr <- atomr %>% filter(group %in% group.keep)
-omoc <- omoc %>% filter(group %in% group.keep)
+group.levs <- c("alkane CH", "alcohol", "carboxylic acid", "ketone", "aldehyde", "organonitrate", "aromatic CH", "alkene CH", "phenol", "hydroperoxide", "peroxyacylnitrate")
+
+atomr <- atomr %>% filter(group %in% group.levs) %>% mutate(group=factor(group, group.levs))
+omoc <- omoc %>% filter(group %in% group.levs) %>% mutate(group=factor(group, group.levs))
+
+atomr$meas <- factor(atomr$meas, meas.levs, names(meas.levs))
+omoc$meas <- factor(omoc$meas, meas.levs, names(meas.levs))
 
 ## -----------------------------------------------------------------------------
 
 LegendFig <- function(...) {
   plot.new()
   plot.window(0:1, 0:1)
-  get("legend", globalenv())(.5, .9, xjust=.5, yjust=1, ..., bty="n", xpd=NA)
+  get("legend", globalenv())(.45, 1, xjust=.5, yjust=1, ..., bty="n", xpd=NA)
 }
 
 barplot <- function(...) {
@@ -90,14 +99,15 @@ barplot <- function(...) {
 
 
 ylims <- list(
-  "OC"=c(0, 1.05),
-  "OM"=c(0, 1.05),
-  "O/C"=c(0, 1),
-  "H/C"=c(0, 2.2),
-  "N/C"=c(0, 0.05)
+  "OC"=c(0, 1.02),
+  "OM"=c(0, 1.02),
+  "O/C"=c(0, 1.02),
+  "H/C"=c(0, 2.02),
+  "N/C"=c(0, 0.05),
+  "OM/OC"=c(0, 1.02)
 )
 
-colors.C <- with(list(x=unique(mass$clabel)), setNames(GGColorHue(length(x)), x))
+colors.C <- with(list(x=clabel.levs), setNames(GGColorHue(length(x)), x))
 
 Parset <- function() {
   par(mar=c(2, 2, 2, 1), oma=c(1, 2, 0, 0))
@@ -112,24 +122,24 @@ i <- 1
 for(.var in levels(mass$variable)) {
   .table <- filter(mass, variable==.var)
   .mat <- acast(.table, clabel~meas, fill=0)
-  barplot(.mat, ylim=ylims[[.var]], col=colors.C[rownames(.mat)])
+  barplot(.mat[names(colors.C),], ylim=ylims[[.var]], col=colors.C)
   mtext(.var, 3)
 }
 cex.exp <- c(1.2, .8)
-with(list(x=unique(mass$clabel)),
-     LegendFig(title="Ctype", legend=x, fill=colors.C[x], ncol=2, border=NA, box.cex=cex.exp))
-with(list(x=Relabel(unique(omoc$group),relabel.FG)),
-     LegendFig(title="FG", legend=x, fill=colors.FG[x], border=NA, box.cex=cex.exp))
+with(list(x=names(colors.C)),
+     LegendFig(title="Carbon type", legend=x, fill=colors.C[x], ncol=2, border=NA, box.cex=cex.exp))
+with(list(x=Relabel(levels(omoc$group),labels.FG)),
+     LegendFig(title="FG", legend=x, fill=colors.FG[x], ncol=2, border=NA, box.cex=cex.exp, text.width=.3))
 ##
 for(.var in c("O/C", "H/C", "N/C")) {
   .table <- filter(atomr, variable==.var)
   .mat <- acast(.table, group~meas, fill=0)
-  barplot(.mat, ylim=ylims[[.var]], col=colors.FG[Relabel(rownames(.mat),relabel.FG)])
+  barplot(.mat, ylim=ylims[[.var]], col=colors.FG[Relabel(rownames(.mat),labels.FG)])
   mtext(.var, 3)
 }
 ##
 .mat <- acast(omoc, group~meas, fill=0)
-barplot(.mat, ylim=c(0, 1.1), yaxt="n", col=colors.FG[Relabel(rownames(.mat),relabel.FG)])
+barplot(.mat, ylim=ylims[["OM/OC"]], yaxt="n", col=colors.FG[Relabel(rownames(.mat), labels.FG)])
 mtext("OM/OC", 3)
 yval <- seq(0, par("usr")[4], .2)
 axis(2, yval, sprintf("%.1f", yval+1), cex.axis=1.4)

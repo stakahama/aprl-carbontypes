@@ -12,7 +12,7 @@ GGTheme <- function() {
                axis.text.y=element_text(margin=margin(.5, .5, .5, .5, "lines")),
                #axis.text.y=element_text(angle=90, hjust=.5),
                axis.ticks.length = unit(-0.3, "lines"),
-               panel.background=element_rect(color="white"),
+               panel.background=element_rect(fill="white"),
                panel.border=element_rect(color=1, fill=NA),
                panel.grid.major = element_blank(),
                panel.grid.minor = element_blank())
@@ -64,3 +64,8 @@ GGColorHue <- function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
+Capitalize <- function(x)
+  `substring<-`(x, 1, 1, toupper(substring(x, 1, 1)))
+
+colors.OSC <- setNames(tail(colorRampPalette(c("darkorange", "lightgray", "darkblue"))(9), -1),
+                       seq(-4, 3))

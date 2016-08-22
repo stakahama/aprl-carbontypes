@@ -23,7 +23,7 @@ molec.attr <- ReadFile("molecattr")
 plot(X, sweep(Y %*% Theta, 2, gamma, "*"))
 abline(0, 1)
 
-isTRUE(all.equal(X, sweep(Y %*% Theta, 2, gamma, "*")))
+stopifnot(isTRUE(all.equal(X, sweep(Y %*% Theta, 2, gamma, "*"))))
 
 ## -----------------------------------------------------------------------------
 
@@ -69,6 +69,16 @@ nC <- rowSums(Y)
 plot((Y %*% zeta)/nC, (X %*% zFG)/nC)
 abline(0,1)
 
-isTRUE(all.equal((Y %*% zeta)/nC, (X %*% zFG)/nC))
+stopifnot(isTRUE(all.equal((Y %*% zeta)/nC, (X %*% zFG)/nC)))
 
 ## -----------------------------------------------------------------------------
+
+J.s <- c("alkane CH", "alcohol", "ester")
+C.s <- rowSums(Theta[,J.s]) > 0
+nC.1 <- rowSums(Y[,C.s])
+nC.2 <- rowSums(sweep(Y, 2, sign(Theta[,j] %*% gamma[j]), "*"))
+
+plot(nC.1, nC.2)
+abline(0, 1)
+
+stopifnot(isTRUE(all.equal(nC.1, nC.2)))
