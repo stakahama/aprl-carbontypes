@@ -1,5 +1,6 @@
 options(stringsAsFactors=FALSE)
 
+library(abind)
 library(plyr)
 library(dplyr)
 library(reshape2)
@@ -9,7 +10,7 @@ library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
 PopulateEnv("fig", "config_fig.R")
-PopulateEnv("mylib", "lib/lib_collapse.R")
+PopulateEnv("mylib", c("lib/lib_collapse.R", "lib/lib_lambdaC.R"))
 GGTheme()
 
 ## -----------------------------------------------------------------------------
@@ -19,26 +20,11 @@ DBind[measlist, collapserule] <-
   ReadFile("meas")[c("lambdaC", "collapse")]
 svoc <- ReadFile("svoc")$compounds
 molec.attr <- ReadFile("molecattr")
+decisions <- as.list(ReadFile("example_1"))
 
-## patt <- "lambdaC_Phi_(.+_collapsed).rds"
-## ff <- list.files("outputs", patt, full=TRUE)
-## names(ff) <- sub(patt, "\\1", basename(ff))
-
-ff <- list.files("outputs", "lambdaC_values.+_collapsed\\.csv$", full=TRUE)
-names(ff) <- gsub("(lambdaC_values_)|(\\.csv)", "", basename(ff))
+lambdaC <- read.csv("outputs/lambdaC_coef_actual.csv", check.names=FALSE)
 
 ## -----------------------------------------------------------------------------
-
-DBind[measlist.collapsed, matrices.collapsed] <-
-  AggGroups(collapserule, measlist, matrices)
-
-DBind[X, Y, Theta, gamma] <- matrices.collapsed
-
-## -----------------------------------------------------------------------------
-
-
-lambdaC <- ldply(ff, read.csv, check.names=FALSE, .id="meas") %>%
-  filter(method %in% c("count", "solve"))
 
 ReplZero <- function(x) replace(x, is.na(x), 0)
 id.vars <- c("meas", "method")
@@ -46,11 +32,23 @@ id.vars <- c("meas", "method")
 lambdaC <- daply(lambdaC, id.vars, function(x, i)
   ReplZero(unlist(x[setdiff(names(x), i)])), id.vars)
 
-methods <- c("count", "solve")
+margin <- 2
+lambdaC <- abind(c(
+  setNames(alply(lambdaC, margin), dimnames(lambdaC)[[margin]]),
+  list(nominal=Nominal(lambdaC, "count", decisions$lambdaC.nominal))
+), along=length(dim(lambdaC)))
+
+lambdaC <- aperm(lambdaC, c(1,3,2))
+
+
+## -----------------------------------------------------------------------------
+DBind[X, Y, Theta, gamma] <- matrices
+
+methods <- c("count", "solve", "fit", "nominal")
 
 out <- list()
-for(.meas in names(measlist.collapsed)) {
-  j <- measlist.collapsed[[.meas]]
+for(.meas in names(measlist)) {
+  j <- intersect(measlist[[.meas]], colnames(Theta))
   nC.ref <- rowSums(sweep(Y[svoc,], 2, sign(Theta[,j] %*% gamma[j]), "*"))
   nC.est <- list()
   for(.method in methods) {
@@ -63,7 +61,7 @@ for(.meas in names(measlist.collapsed)) {
 out <- ldply(out, .id="meas")
 
 levels(out$method) <- toupper(levels(out$method))
-levels(out$meas) <- Capitalize(sub("_collapsed", "", levels(out$meas)))
+levels(out$meas) <- Capitalize(levels(out$meas))
 
 table <- left_join(out,
                    molec.attr %>%
@@ -71,6 +69,20 @@ table <- left_join(out,
                    select(compound, logC0, OSC))
 
 ## table <- out
+
+Stats <- function(x) {
+  out <- lm(est~ref-1, data=x)
+  val <- c(slope=unname(coef(out)), cor=with(x, cor(ref, est)))
+  data.frame(as.list(val))
+}
+
+## table %>% count(meas, method)
+stats <- table %>% group_by(meas, method) %>%
+  do(Stats(.))
+
+stats.formatted <- stats
+stats.formatted$slope <- sprintf("slope = %.2f", stats$slope)
+stats.formatted$cor <- sprintf("italic(r) == %.2f", stats$cor)
 
 grid <- do.call(expand.grid, lapply(out[c("method", "meas")], levels))
 grid$letter <- sprintf("%s)", letters[seq(nrow(grid))])
@@ -83,8 +95,12 @@ ggp <- ggplot(table)+
   scale_y_continuous(name=expression(hat(italic(n))[C]^"*"), limits=c(2, 11), breaks=seq(2, 11, 2))+
   geom_text(aes(x=-Inf, y=Inf, label=letter), data=grid, size=5, hjust=0, vjust=1)+
   ## scale_color_continuous(name=expression(logC[0]))+
-  scale_color_continuous(name=expression(bar(OS)[C]), low=colors.OSC[1], high=tail(colors.OSC, 1))
+  scale_color_continuous(name=expression(bar(OS)[C]), low=colors.OSC[1], high=tail(colors.OSC, 1))+
+  geom_text(aes(x=-Inf, y=Inf, label=slope), data=stats.formatted, size=5, hjust=0, vjust=2.2)+
+  geom_text(aes(x=-Inf, y=Inf, label=cor), data=stats.formatted, size=5, hjust=0, vjust=3.4, parse=TRUE)
 
-pdf("outputs/nC_est_scatterplot.pdf", width=5, height=7)
+pdf("outputs/nC_est_scatterplot.pdf", width=9, height=7)
 print(ggp)
 dev.off()
+
+

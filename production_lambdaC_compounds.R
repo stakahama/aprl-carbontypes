@@ -24,7 +24,7 @@ uniq <- UniqueMapping(Theta)
 
 for(.label in names(measlist)) {
 
-  meas <- measlist[[.label]]
+  meas <- intersect(measlist[[.label]], colnames(Theta))
   measC <- names(which(rowSums(Theta[,meas]) > 0))
 
   fullm <- list(ctype=measC, group=meas)

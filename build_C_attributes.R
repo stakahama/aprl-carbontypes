@@ -27,8 +27,8 @@ wf.groups <- AddCtypeWide(fulltable)
 ##   (including heteroatoms) are double-counted
 
 atoms <- adjtable %>% filter(Shorttype(atom1_type)=="C") %>%
-  rename(atom=atom1) %>% mutate(atom2_type=Shorttype(atom2_type)) %>%
-  dcast(., compound+atom~atom2_type, length, value.var="atom2")
+  rename(atom=atom1) %>% mutate(atom2_type=factor(Shorttype(atom2_type), names(am))) %>%
+  dcast(., compound+atom~atom2_type, length, value.var="atom2", drop=FALSE)
 
 merged <- full_join(wf.groups, atoms)
 
@@ -38,7 +38,7 @@ merged$ctype2 <- apply(merged[,names(am)], 1, Int2Key)
 
 atypes <- unique(merged %>% select(type, ctype, ctype2))
 dups <- with(atypes, ctype[duplicated(ctype)])
-stopifnot(length(dups)==3) # ester, peroxide, ...
+## stopifnot(length(dups)==3) # ester, peroxide, ... when using "merged" table including TMB
 
 merged$ctype2 <- NULL
 

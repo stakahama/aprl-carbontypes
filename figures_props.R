@@ -65,8 +65,11 @@ cumul <- omoc %>%
 
 group.levs <- c("alkane CH", "alcohol", "carboxylic acid", "ketone", "aldehyde", "organonitrate", "aromatic CH", "alkene CH", "phenol", "hydroperoxide", "peroxyacylnitrate")
 
-atomr <- atomr %>% filter(group %in% group.levs) %>% mutate(group=factor(group, group.levs))
-omoc <- omoc %>% filter(group %in% group.levs) %>% mutate(group=factor(group, group.levs))
+## call factor twice to drop unused levels
+atomr <- atomr %>% filter(group %in% group.levs) %>%
+  mutate(group=factor(factor(group, group.levs)))
+omoc <- omoc %>% filter(group %in% group.levs) %>%
+  mutate(group=factor(factor(group, group.levs)))
 
 atomr$meas <- factor(atomr$meas, meas.levs, names(meas.levs))
 omoc$meas <- factor(omoc$meas, meas.levs, names(meas.levs))
@@ -129,7 +132,7 @@ cex.exp <- c(1.2, .8)
 with(list(x=names(colors.C)),
      LegendFig(title="Carbon type", legend=x, fill=colors.C[x], ncol=2, border=NA, box.cex=cex.exp))
 with(list(x=Relabel(levels(omoc$group),labels.FG)),
-     LegendFig(title="FG", legend=x, fill=colors.FG[x], ncol=2, border=NA, box.cex=cex.exp, text.width=.3))
+     LegendFig(title="FG", legend=x, fill=colors.FG[x], ncol=1, border=NA, box.cex=cex.exp, text.width=.3))
 ##
 for(.var in c("O/C", "H/C", "N/C")) {
   .table <- filter(atomr, variable==.var)

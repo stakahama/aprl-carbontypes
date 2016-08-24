@@ -24,6 +24,8 @@ f3 <- "outputs/lambdaC_values_tseries.csv"
 
 Theta <- ReadFile("matrices")[["Theta"]]
 
+measlist <- ReadFile("meas")[["lambdaC"]]
+
 ## -----------------------------------------------------------------------------
 
 df <- ldply(ff, function(f, x=1.96) {
@@ -59,9 +61,6 @@ dfm <- full_join(dfm, df3 %>% mutate(method="fit"))
 
 dfm <- dfm %>% filter(!group %in% uniq$group)
 
-methods <- c("count", "solve", "fit")
-dfm$method <- factor(dfm$method, methods, toupper(methods))
-dfm$meas <- with(dfm, factor(meas, unique(meas), Capitalize(unique(meas))))
 
 dodge <- position_dodge(width=0.9)
 ## ggp <- ggplot(dfm)+
@@ -71,43 +70,29 @@ dodge <- position_dodge(width=0.9)
 ##   geom_errorbar(aes(group, ymin=bu, ymax=bl, group=meas), width=0.025, position=dodge)+
 ##   theme(axis.text.x=element_text(angle=30, hjust=1))
 
-ggp <- ggplot(dfm)+
-  facet_grid(meas~.)+
-  geom_hline(yintercept=c(1/(1:4), 0), linetype=2)+
-  geom_bar(aes(group, Estimate, fill=method), stat="identity", position=dodge)+
-  geom_errorbar(aes(group, ymin=bu, ymax=bl, group=method), width=0.025, position=dodge)+
-  theme(axis.text.x=element_text(angle=30, hjust=1))+
-  scale_y_continuous(limits=c(0, 1.8), expand=c(0, 0))+
-  labs(x="", y=expression("Coefficient,"~lambda[C,j]))
+ggp <- local({
+  methods <- c("count", "solve", "fit")
+  dfm$method <- factor(dfm$method, methods, toupper(methods))
+  dfm$meas <- with(dfm, factor(meas, unique(meas), Capitalize(unique(meas))))
+
+  ggplot(dfm)+
+    facet_grid(meas~.)+
+    geom_hline(yintercept=c(1/(1:4), 0), linetype=2)+
+    geom_bar(aes(group, Estimate, fill=method), stat="identity", position=dodge)+
+    geom_errorbar(aes(group, ymin=bu, ymax=bl, group=method), width=0.025, position=dodge)+
+    theme(axis.text.x=element_text(angle=30, hjust=1))+
+    scale_y_continuous(limits=c(0, 1.8), expand=c(0, 0))+
+    labs(x="", y=expression("Coefficient,"~lambda[C,j]))
+})
 
 pdf(FilePath("lambdaC_coef_errorbars"), width=7, height=7)
 print(ggp)
 dev.off()
 
+fixed <- intersect(Reduce(union, as.list(unname(measlist))), uniq$group)
+fixed.values <- as.list(with(uniq, setNames(value, group))[fixed])
+
 lambdaCtable <- dcast(dfm, method+meas~group, value.var="Estimate")
+lambdaCtable <- cbind(lambdaCtable, fixed.values)
 write.csv(lambdaCtable, FilePath("lambdaC_coef_actual"), row.names=FALSE)
 
-stop()
-
-## -----------------------------------------------------------------------------0
-
-## dfm.agg <- dfm %>% group_by(meas, FG) %>% summarize(Estimate=mean(Estimate))
-
-nom <- c(1/sort(unique(rowSums(Theta))), 0)
-dfm$nominal <- nom[sapply(dfm$Estimate, function(x, y) which.min(abs(x-y)), nom)]
-
-## with(df, plot(Estimate, nominal))
-## abline(0, 1)
-
-## lambdaCarray <- acast(dfm.agg, meas~FG, value.var="Estimate")
-## write.csv(lambdaCarray, FilePath("lambdaC_coef_actual"))
-
-## lambdaCarray <- acast(dfm.agg, meas~FG, value.var="nominal")
-## write.csv(lambdaCarray, FilePath("lambdaC_coef_nominal"))
-
-
-lambdaCtable <- dcast(dfm, method+meas~FG, value.var="Estimate")
-write.csv(lambdaCtable, FilePath("lambdaC_coef_actual"), row.names=FALSE)
-
-lambdaCtable <- dcast(dfm, method+meas~FG, value.var="nominal")
-write.csv(lambdaCtable, FilePath("lambdaC_coef_nominal"), row.names=FALSE)

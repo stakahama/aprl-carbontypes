@@ -51,7 +51,7 @@ nCfit <- list()
 
 for(.label in names(measlist)) {
 
-  meas <- measlist[[.label]]
+  meas <- intersect(measlist[[.label]], colnames(Theta))
   meas <- meas[apply(X[cmpds,meas] > 0, 2, any)]
 
   measC <- rowSums(Theta[,meas]) > 0

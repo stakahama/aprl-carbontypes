@@ -52,6 +52,7 @@ tiers <- c(head(meas, 1), Map(setdiff, tail(meas, -1), head(meas, -1)))
 meas.full <- c(tiers, list("full"=colnames(Theta)))
 
 nC.s <- ldply(meas.full, function(J.s, Y, Theta, gamma, example, cmpds) {
+  J.s <- intersect(J.s, colnames(Theta))
   Y.s <- Ystar(Y, Theta[,J.s,drop=FALSE], gamma[J.s])
   prod. <- example[,cmpds] %*% Y.s[cmpds,]
   data.frame(clabel=colnames(Y), nC=c(prod.))

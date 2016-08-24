@@ -59,3 +59,19 @@ Vec2Mat <- function(x, column="Y") {
   colnames(x) <- column
   x
 }
+
+
+Nominal <- function(lambdaC, method="mean", adjust=NULL) {
+  nom <- c(1/sort(unique(rowSums(Theta))), 0)
+  template <- apply(lambdaC, c(1,3), mean)
+  if(method=="mean") {
+    mat <- template
+  } else {
+    mat <- lambdaC[,method,]
+  }
+  template[] <- sapply(mat, function(x, y) y[which.min(abs(x-y))], nom)
+  if(!is.null(adjust))
+    for(j in names(adjust))
+      template[,j] <- adjust[j]
+  template
+}

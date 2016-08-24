@@ -37,7 +37,7 @@ examp <- ldply(molec.moles, function(X, i, Y)
 ## -----------------------------------------------------------------------------
 
 ctypes <- ldply(measlist, function(j, Theta)
-  data.frame(ctype=rownames(Theta)[rowSums(Theta[,j]) > 0]),
+  data.frame(ctype=rownames(Theta)[rowSums(Theta[,intersect(j, colnames(Theta))]) > 0]),
   Theta, .id="meas")
 
 wf <- full_join(left_join(ctypes, examp %>% select(phase, ctype, nC)),
@@ -75,6 +75,8 @@ colors.sets <- setNames(brewer.pal(8, "Set1"), rownames(mat))
 osc$index <- seq_along(osc$meas)
 osc$meas <- Capitalize(osc$meas)
 
+xmax <- ceiling(max(colSums(mat)))
+
 pdf("outputs/OSC_distr_meas.pdf", width=8, height=4)
 ## layout(t(1:2), width=c(3,2))
 layout(t(1:2))
@@ -85,7 +87,7 @@ ylim <- c(-3, 3)
 i <- 1
 ##
 plot.new()
-plot.window(c(0, 4), ExpandLim(ylim), xaxs="i")
+plot.window(c(0, xmax), ExpandLim(ylim), xaxs="i")
 ypos <- outer(seq(min(ylim), max(ylim)), .35*c(-1,1), "+")
 Addbars(mat, at=ypos, col=colors.sets)
 axis(1)
@@ -104,11 +106,11 @@ i <- i+1
 par(mar=c(2,2,.5,.5))
 with(osc, {
   plot.new()
-  plot.window(range(index), ExpandLim(ylim))
+  plot.window(ExpandLim(range(index), .1), ExpandLim(ylim))
   abline(h=seq(min(ylim), max(ylim)), lty=2, col=8)
   abline(h=0)
   lines(index, value, type="h", lwd=2, col="midnightblue")
-  points(index, value, pch=19, lwd=2, col="midnightblue")
+  points(index, value, pch=19, lwd=2, cex=1.2, col="midnightblue")
   axis(1, index, FALSE)
   axis(2, las=1)
   axis(3,,FALSE)
@@ -116,7 +118,7 @@ with(osc, {
   box()
   text(index, par("usr")[3]-par("cxy")[2]*.3, adj=c(1, .5), xpd=NA, srt=30,
        ifelse(meas=="AMS", expression(2*O/C-H/C), meas))
-  mtext(expression(bar(OS)[C]^"*"), 3)
+  mtext(expression(bar(OS)[C]*"*"), 3)
 })
 text(par("usr")[1], par("usr")[4], adj=c(0, -.3), xpd=NA,
      sprintf("%s)", letters[i]), cex=1.2)

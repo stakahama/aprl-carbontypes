@@ -32,24 +32,13 @@ names(ff) <- sub(".+(set[0-9])(_collapsed)?\\.csv", "\\1\\2", basename(ff))
 ## -----------------------------------------------------------------------------
 
 uniq <- UniqueMapping(matrices$Theta)
-uniq.collapsed <- UniqueMapping(matrices.collapsed$Theta)
-
-for(j in intersect(colnames(lambdaC$actual), uniq$group)) {
-  lambdaC$actual[,j] <- ifelse(is.na(lambdaC$actual[,j]), uniq[match(j, uniq$group),"value"], lambdaC$actual[,j])
-  lambdaC$nominal[,j] <- ifelse(is.na(lambdaC$nominal[,j]), uniq[match(j, uniq$group),"value"], lambdaC$nominal[,j])
-}
-
-for(j in intersect(colnames(lambdaC$actual), uniq.collapsed$group)) {
-  lambdaC$actual[,j] <- ifelse(is.na(lambdaC$actual[,j]), uniq[match(j, uniq$group),"value"], lambdaC$actual[,j])
-  lambdaC$nominal[,j] <- ifelse(is.na(lambdaC$nominal[,j]), uniq[match(j, uniq$group),"value"], lambdaC$nominal[,j])
-}
 
 ## -----------------------------------------------------------------------------
 
 ReplZero <- function(x) replace(x, is.na(x), 0)
 
-margins <- c("case", "meas", "method")
-lambdaC <- daply(ldply(lambdaC, .id="case"), margins,
+margins <- c("meas", "method")
+lambdaC <- daply(lambdaC, margins,
                  function(x, j) ReplZero(unlist(x[setdiff(names(x), j)])),
                  margins)
 
@@ -64,31 +53,24 @@ n <- coredata(molec.moles)
 ## -----------------------------------------------------------------------------
 
 
-NCratio <- function(case, meas, method, lambdaC, n, arr1, arr2, measlist, time) {
-  if(grepl("collapsed", meas)) {
-    DBind[X, Y, Theta, gamma] <- arr2
-  } else {
-    DBind[X, Y, Theta, gamma] <- arr1
-  }
+NCratio <- function(meas, method, lambdaC, n, matrices, measlist, time) {
+  DBind[X, Y, Theta, gamma] <- matrices
   ##
   i <- intersect(colnames(n), rownames(Y))
-  j <- measlist[[meas]]
+  j <- intersect(measlist[[meas]], colnames(Theta))
   ##
   G <- n[,i] %*% X[i,]
   Y.s <- sweep(Y, 2, sign(Theta[,j] %*% gamma[j]), `*`)
   nC.s <- n[,i] %*% rowSums(Y.s[i,])
-  nC.r <- (G[,j] %*% lambdaC[case, meas, method, j]) / nC.s
+  nC.r <- (G[,j] %*% lambdaC[meas, method, j]) / nC.s
   ##
-  data.frame(time, case, meas, method, value=nC.r)
+  data.frame(time, meas, method, value=nC.r)
 }
 
 nC.h <- do.call(
   Map, c(list(NCratio),
-         do.call(expand.grid, c(dimnames(lambdaC)[1:3], stringsAsFactors=FALSE)),
-         list(MoreArgs=NamedList(lambdaC, n,
-                                 arr1=matrices, arr2=matrices.collapsed,
-                                 measlist=c(measlist, measlist.collapsed),
-                                 time)))
+         do.call(expand.grid, c(dimnames(lambdaC)[margins], stringsAsFactors=FALSE)),
+         list(MoreArgs=NamedList(lambdaC, n, matrices, measlist, time)))
 )
 
 tables <- ldply(unname(nC.h))
@@ -96,12 +78,10 @@ tables <- ldply(unname(nC.h))
 ## tables <- ldply(tables, .id="case") %>%
 ##   melt(., c("time", "case"), variable.name="meas")
 
-tables$case <- factor(tables$case, c("actual", "nominal"))
-
 ggp <- ggplot(tables)+
   geom_hline(yintercept=1, size=.3, linetype=2)+
   geom_line(aes(time, value, color=meas))+
-  facet_grid(case~method)+
+  facet_grid(.~method)+
   labs(x="Hour", y="Ratio")+
   lims(y=1+.2*c(-1,1))
 
@@ -113,17 +93,14 @@ dev.off()
 
 ## *** collapsed ***
 
-DBind[X, Y, Theta, gamma] <- matrices.collapsed
+DBind[X, Y, Theta, gamma] <- matrices
 
 cmpds <- intersect(colnames(n), rownames(Y))
 
-nom <- c(1/sort(unique(rowSums(Theta))), 0)
-
-ave <- apply(lambdaC["actual",grepl("collapsed", dimnames(lambdaC)[[2]]),,], c(1,3), mean)
-ave.nom <- `[<-`(force(ave), , sapply(ave, function(x, y) y[which.min(abs(x-y))], nom))
+ave.nom <- Nominal(lambdaC, "count", decisions$lambdaC.nominal)
 
 NCratio2 <- function(meas, lambdaC, n, X, Y, Theta, gamma, measlist, time) {
-  j <- measlist[[meas]]
+  j <- intersect(measlist[[meas]], colnames(Theta))
   Y.s <- sweep(Y, 2, sign(Theta[,j] %*% gamma[j]), `*`)
   G <- n %*% X
   nC.s <- n %*% rowSums(Y.s)
@@ -136,27 +113,26 @@ nC.h <- do.call(
          dimnames(ave.nom)[1],
          list(MoreArgs=NamedList(lambdaC=ave.nom,
                                  n=n[,cmpds], X=X[cmpds,], Y=Y[cmpds,], Theta, gamma,
-                                 measlist=measlist.collapsed, time)))
+                                 measlist, time)))
 )
 
 tables2 <- ldply(unname(nC.h))
 
 ggp <- ggplot(tables2)+
   geom_line(aes(time, value, color=meas))+
-  lims(y=1+.2*c(-1,1))
+  facet_wrap(~method)
 
-print(ggp)
+## print(ggp)
 
 ## -----------------------------------------------------------------------------
 
 merged <- full_join(
-  tables %>% filter(grepl("\\_collapsed", meas) & case=="actual") %>%
-  mutate(meas=sub("\\_collapsed", "", meas), case=NULL),
-  tables2 %>% mutate(method="nominal", meas=sub("\\_collapsed", "", meas))
+  tables,
+  tables2 %>% mutate(method="nominal")
 )
 
 
-methods <- c("count", "solve", "nominal")
+methods <- c("count", "solve", "fit", "nominal")
 merged$method <- factor(merged$method, methods, toupper(methods))
 merged$meas <- with(merged, factor(meas, unique(meas), Capitalize(unique(meas))))
 
@@ -169,8 +145,8 @@ merged$meas <- with(merged, factor(meas, unique(meas), Capitalize(unique(meas)))
 ##   lims(y=1+.2*c(-1,1))+
 ##   labs(y=expression(hat(italic(n))[C]^"*"/ italic(n)[C]^"*"))
 
-lett.labels <- with(merged, data.frame(letter=sprintf("%s)", letters[seq(nlevels(method))]),
-                                       method=factor(levels(method), levels(method))))
+lett.labels <- with(merged, data.frame(letter=sprintf("%s) %s", letters[seq(nlevels(method))], levels(method)),
+                               method=factor(levels(method), levels(method))))
 
 ggp <- ggplot(merged)+
   geom_hline(yintercept=1, size=.2, color="gray")+
@@ -180,9 +156,11 @@ ggp <- ggplot(merged)+
   labs(x="Hour", y=expression("Recovery fraction,"~hat(italic(n))[C]^"*"/ italic(n)[C]^"*"))+
   scale_color_discrete(guide=guide_legend(title=""))+
   scale_linetype_discrete(guide=guide_legend(title=""))+
-  geom_text(aes(x=-Inf, y=Inf, label=letter), data=lett.labels, size=5, hjust=0, vjust=1)
+  geom_text(aes(x=-Inf, y=Inf, label=letter), data=lett.labels, size=5, hjust=0, vjust=1.2)+
+  theme(strip.background = element_blank(),
+        strip.text.x = element_blank())
 
-pdf("outputs/nC_recovery_tseries.pdf", width=8, height=3.5)
+pdf("outputs/nC_recovery_tseries.pdf", width=6, height=5)
 GGTheme()
 print(ggp)
 dev.off()

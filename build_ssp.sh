@@ -1,13 +1,18 @@
 #!/bin/sh
 
 
+# prefix=merged
+prefix=apinene
 ssp=~/git/projects/aprl-ssp
-prefix=merged
 here=`pwd`
 
 cd data
 
-R -e "write.csv(unique(plyr::ldply(file.path('https://raw.githubusercontent.com/stakahama/aprl-ssp/master/validation',  c('apinenemech.csv', 'apinenepropenemech.csv', 'tmbmech.csv', 'tmbpropenemech.csv')), read.csv)), file='${prefix}_SMILES.csv', row.names=FALSE)"
+# R -e "write.csv(unique(plyr::ldply(file.path('https://raw.githubusercontent.com/stakahama/aprl-ssp/master/validation',  c('apinenemech.csv', 'apinenepropenemech.csv', 'tmbmech.csv', 'tmbpropenemech.csv')), read.csv)), file='${prefix}_SMILES.csv', row.names=FALSE)"
+
+R -e "write.csv(unique(read.csv(file.path('https://raw.githubusercontent.com/stakahama/aprl-ssp/master/validation',  'apinenepropenemech.csv'))), file='${prefix}_SMILES.csv', row.names=FALSE)"
+
+# exit 1
 
 python ${ssp}/substructure_search.py \
        -d -g common_atoms.csv \

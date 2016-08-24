@@ -81,7 +81,9 @@ example.subset <- example.aer %>%
 cumul <- example.subset %>% group_by(clabel) %>% summarize(nC=sum(nC)) %>%
   ungroup() %>% arrange(desc(nC)) %>% mutate(cfrac=cumsum(nC)/sum(nC))
 
-clabel.keep <- with(cumul, clabel[1:15])
+clabel.keep <- with(cumul, clabel[1:decisions$ncarbon])
+
+ymax <- ceiling(max(example.subset %>% group_by(compound) %>% summarize(nC=sum(nC)) %>% .[["nC"]]))
 
 ggp <- ggplot(example.subset %>%
               filter(clabel %in% clabel.keep) %>%
@@ -89,7 +91,7 @@ ggp <- ggplot(example.subset %>%
   geom_bar(aes(compound, nC, fill=clabel), size=.1, col="white", stat="identity")+
   theme(axis.text.x=element_text(angle=60, hjust=1))+
   labs(x="", y=expression(italic(n)[C]~(mu*mole/m^3)))+
-  scale_y_continuous(limits=c(0, 4), expand=c(0, 0))+
+  scale_y_continuous(limits=c(0, ymax+.5), expand=c(0, 0))+
   scale_fill_discrete("Carbon\ntype")
 
 pdf(FilePath("plot_compound_abundance"), width=7, height=5.5)

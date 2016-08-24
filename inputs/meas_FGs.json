@@ -4,10 +4,8 @@
 	"tier2": ["organonitrate","phenol","alkene CH","aromatic CH"]
     },
     "lambdaC": {
-	"set1": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol"],
-	"set2": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate"],
-	"set3": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate", "phenol","alkene CH","aromatic CH"],
-	"set4": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate", "phenol","alkene CH","aromatic CH", "carbonylperoxyacid", "hydroperoxide", "peroxyacylnitrate"]
+	"set1": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate"],
+	"set2": ["alkane CH", "carboxylic acid", "ketone", "aldehyde", "ester", "alcohol", "organonitrate", "phenol","alkene CH","aromatic CH", "carbonylperoxyacid", "hydroperoxide", "peroxyacylnitrate"]
     },
     "collapse": {
 	"carbonyl": ["ketone", "aldehyde"]

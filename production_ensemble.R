@@ -22,8 +22,7 @@ clabels <- ReadFile("clabels")
 carbon.attr <- ReadFile("carbonattr")
 molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 decisions <- as.list(ReadFile("example_1"))
-lambdaC <- list(nominal=ReadFile("lambdaC_coef_nominal"),
-                actual=ReadFile("lambdaC_coef_actual"))
+lambdaC <- list(actual=ReadFile("lambdaC_coef_actual"))
 
 ## -----------------------------------------------------------------------------
 
@@ -77,7 +76,7 @@ for(.est in names(lambdaC)) {
 
   for(.label in names(measlist)) {
 
-    meas <- measlist[[.label]]
+    meas <- intersect(measlist[[.label]], colnames(Theta))
 
     ## ctypes <- intersect(rownames(Theta)[rowSums(Theta[,meas]) > 0], carbons)
     ctypes <- rownames(Theta)[rowSums(Theta[,meas]) > 0]

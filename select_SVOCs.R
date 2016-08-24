@@ -24,11 +24,6 @@ j <- apply(Theta[k,] > 0, 2, any)
 
 out <- list(compounds=svoc, ctypes=rownames(Theta)[k], groups=colnames(Theta)[j])
 
-clabels <- with(list(sk=out$ctypes, rest=setdiff(rownames(Theta), out$ctypes)),
-                setNames(c(sprintf("S%02d",seq_along(sk)),
-                           sprintf("T%02d",seq_along(rest))),
-                         c(sk, rest)))
-
 ## Y <- Y[svoc,sk]
 ## X <- X[svoc,sj]
 ## Theta <- Theta[sk,sj]
@@ -37,5 +32,12 @@ clabels <- with(list(sk=out$ctypes, rest=setdiff(rownames(Theta), out$ctypes)),
 ## -----------------------------------------------------------------------------
 
 cat(toJSON(out), file=FilePath("svoc"))
+
+## -----------------------------------------------------------------------------
+
+## clabels <- with(list(sk=out$ctypes, rest=setdiff(rownames(Theta), out$ctypes)),
+##                 setNames(c(sprintf("S%02d",seq_along(sk)),
+##                            sprintf("T%02d",seq_along(rest))),
+##                          c(sk, rest)))
 
 ## cat(toJSON(clabels), file=FilePath("clabels"))

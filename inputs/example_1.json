@@ -1,5 +1,6 @@
 {
-    "hour":20,
+    "hour":9.3,
     "ncompounds":20,
-    "ncarbons":15
+    "ncarbons":15,
+    "lambdaC.nominal":{"alkane CH":.45}
 }
