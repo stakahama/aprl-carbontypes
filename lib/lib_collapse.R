@@ -2,7 +2,7 @@
 Radicalgroups <- function(X)
   rownames(X)[apply(X[,grepl("radical", colnames(X))] > 0, 1, any)]
 
-AggGroups <- function(agg, meas, matrices) {
+AggGroups <- function(agg, meas, matrices, uniq=NULL) {
 
   newmatrices <- matrices
   newmeas <- list()
@@ -30,6 +30,9 @@ AggGroups <- function(agg, meas, matrices) {
       Lambda <- cbind(Lambda[,rest,drop=FALSE], rowMeans(Lambda[,target,drop=FALSE]))
       colnames(Lambda) <- c(rest, new)
     }
+    if(!is.null(uniq)) {
+      uniq$group[] <- with(uniq, ifelse(group %in% target, new, group))
+    }
     ##
     X <- sweep(Y %*% Theta, 2, gamma, `*`)
     ##
@@ -44,6 +47,17 @@ AggGroups <- function(agg, meas, matrices) {
     newmeas[[newset]] <- intersect(colnames(X), newvars)
   }
 
-  list(meas=newmeas, matrices=newmatrices)
+  list(meas=newmeas, matrices=newmatrices, uniq=uniq)
 
+}
+
+UniqueMapping <- function(Theta) {
+  uniq <- data.frame()
+  for(k in rownames(Theta)) {
+    for(j in colnames(Theta)) {
+      if(sum(Theta[k,])==Theta[k,j] && sum(Theta[,j])==Theta[k,j])
+        uniq <- rbind(uniq, data.frame(ctype=k, group=j, value=Theta[k,j]))
+    }
+  }
+  uniq
 }

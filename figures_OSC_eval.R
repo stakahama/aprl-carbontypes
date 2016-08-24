@@ -9,7 +9,7 @@ library(Rfunctools)
 library(RJSONIO)
 library(pryr)
 library(ggplot2)
-library(gridExtra)
+library(RColorBrewer)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
 PopulateEnv("fig", "config_fig.R")
@@ -59,10 +59,6 @@ osc <- merged.osc %>%
 
 ## -----------------------------------------------------------------------------
 
-library(RColorBrewer)
-
-levels(nC$meas) <- Capitalize(levels(nC$meas))
-
 Addbars <- function(height, at, col, ...) {
   x <- 0
   for(i in rownames(height)) {
@@ -72,13 +68,12 @@ Addbars <- function(height, at, col, ...) {
  }
 }
 
+levels(nC$meas) <- Capitalize(levels(nC$meas))
+
 mat <- acast(nC %>% filter(phase=="aer"), meas~OSC, sum, value.var="nC")
 colors.sets <- setNames(brewer.pal(8, "Set1"), rownames(mat))
 osc$index <- seq_along(osc$meas)
 osc$meas <- Capitalize(osc$meas)
-
-ExpandLim <- function(x, e=.03)
-  x + e*diff(x)*c(-1,1)
 
 pdf("outputs/OSC_distr_meas.pdf", width=8, height=4)
 ## layout(t(1:2), width=c(3,2))
@@ -87,6 +82,7 @@ par(tck=0.025, mgp=c(1.8, .2, 0), oma=c(2,2,1,1))
 par(mar=c(2,2,.5,.5))
 ## par(mar=c(2,2,.5,4))
 ylim <- c(-3, 3)
+i <- 1
 ##
 plot.new()
 plot.window(c(0, 4), ExpandLim(ylim), xaxs="i")
@@ -98,9 +94,12 @@ box()
 ## legend(par("usr")[2], par("usr")[4], xjust=0, yjust=1, xpd=NA,
 ##        legend=rownames(mat), fill=col, border=NA, bty="n")
 legend(par("usr")[2], par("usr")[4], xjust=1, yjust=1, xpd=NA,
-       legend=rownames(mat), fill=col, border=NA, bty="n")
+       legend=rownames(mat), fill=colors.sets[rownames(mat)], border=NA, bty="n")
 mtext(expression(italic(n)[C]~(mu*"mole"/m^3)), 1, line=par("mgp")[1])
 mtext(expression(OS[C]), 3)
+text(par("usr")[1], par("usr")[4], adj=c(0, -.3), xpd=NA,
+     sprintf("%s)", letters[i]), cex=1.2)
+i <- i+1
 ##
 par(mar=c(2,2,.5,.5))
 with(osc, {
@@ -117,7 +116,9 @@ with(osc, {
   box()
   text(index, par("usr")[3]-par("cxy")[2]*.3, adj=c(1, .5), xpd=NA, srt=30,
        ifelse(meas=="AMS", expression(2*O/C-H/C), meas))
+  mtext(expression(bar(OS)[C]^"*"), 3)
 })
-mtext(expression(bar(OS)[C]), 3)
+text(par("usr")[1], par("usr")[4], adj=c(0, -.3), xpd=NA,
+     sprintf("%s)", letters[i]), cex=1.2)
 mtext("Carbon oxidation state", 2, outer=TRUE)#las=0, line=par("mgp")[1], outer=TRUE)
 dev.off()

@@ -24,16 +24,25 @@ clabels <- ReadFile("clabels")
 carbon.attr <- ReadFile("carbonattr")
 molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 decisions <- as.list(ReadFile("example_1"))
-lambdaC <- list(nominal=ReadFile("lambdaC_coef_nominal"),
-                actual=ReadFile("lambdaC_coef_actual"))
+lambdaC <- ReadFile("lambdaC_coef_actual")
 
 ff <- list.files("outputs", "lambdaC_values.+\\.csv$", full=TRUE)
 names(ff) <- sub(".+(set[0-9])(_collapsed)?\\.csv", "\\1\\2", basename(ff))
 
 ## -----------------------------------------------------------------------------
 
-DBind[measlist.collapsed, matrices.collapsed] <-
-  AggGroups(collapserule, measlist, matrices)
+uniq <- UniqueMapping(matrices$Theta)
+uniq.collapsed <- UniqueMapping(matrices.collapsed$Theta)
+
+for(j in intersect(colnames(lambdaC$actual), uniq$group)) {
+  lambdaC$actual[,j] <- ifelse(is.na(lambdaC$actual[,j]), uniq[match(j, uniq$group),"value"], lambdaC$actual[,j])
+  lambdaC$nominal[,j] <- ifelse(is.na(lambdaC$nominal[,j]), uniq[match(j, uniq$group),"value"], lambdaC$nominal[,j])
+}
+
+for(j in intersect(colnames(lambdaC$actual), uniq.collapsed$group)) {
+  lambdaC$actual[,j] <- ifelse(is.na(lambdaC$actual[,j]), uniq[match(j, uniq$group),"value"], lambdaC$actual[,j])
+  lambdaC$nominal[,j] <- ifelse(is.na(lambdaC$nominal[,j]), uniq[match(j, uniq$group),"value"], lambdaC$nominal[,j])
+}
 
 ## -----------------------------------------------------------------------------
 

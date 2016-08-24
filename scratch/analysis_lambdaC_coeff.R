@@ -8,9 +8,6 @@ library(reshape2)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("fig", "config_fig.R")
-PopulateEnv("mylib", c("lib/lib_collapse.R"))
-GGTheme()
 
 ## -----------------------------------------------------------------------------
 
@@ -20,30 +17,24 @@ names(ff) <- gsub("^lambdaC\\_lmfit\\_(.+)\\.rds$","\\1",basename(ff))
 f2 <- list.files("outputs", "lambdaC_count", full=TRUE)
 names(f2) <- gsub("^lambdaC\\_count\\_(.+)\\.csv$","\\1",basename(f2))
 
-f3 <- "outputs/lambdaC_values_tseries.csv"
-
 Theta <- ReadFile("matrices")[["Theta"]]
 
 ## -----------------------------------------------------------------------------
 
 df <- ldply(ff, function(f, x=1.96) {
   out <- readRDS(f)
-  cc <- ResetIndex(as.data.frame(coef(summary(out))), "group")
-  cc[,"group"] <- substring(cc[,"group"], 2)
+  cc <- ResetIndex(as.data.frame(coef(summary(out))), "FG")
+  cc[,"FG"] <- substring(cc[,"FG"], 2)
   cc[,c("bl", "bu")] <- cc[,"Estimate"] + outer(cc[,"Std. Error"], x*c(-1, 1), "*")
   cc
 }, .id="meas")
 
 df2 <- ldply(f2, function(f, x=1.96) {
-  cc <- ResetIndex(t(as.matrix(read.csv(f, row.names="stat", check.names=FALSE))), "group")
+  cc <- ResetIndex(t(as.matrix(read.csv(f, row.names="stat", check.names=FALSE))), "FG")
   cc[,c("bl", "bu")] <- cc[,"mean"] + outer(cc[,"se"], x*c(-1, 1), "*")
   cc
 }, .id="meas")
 
-df3 <- melt(read.csv(f3, check.names=FALSE),
-            id.vars="meas", variable.name="group", value.name="Estimate")
-
-uniq <- UniqueMapping(Theta)
 
 ## -----------------------------------------------------------------------------
 
@@ -55,39 +46,17 @@ dfm <- full_join(df %>% mutate(method="solve"),
                  mutate(method="count")) %>%
   mutate(meas=factor(meas, Sortfn(unique(meas))))
 
-dfm <- full_join(dfm, df3 %>% mutate(method="fit"))
-
-dfm <- dfm %>% filter(!group %in% uniq$group)
-
-methods <- c("count", "solve", "fit")
-dfm$method <- factor(dfm$method, methods, toupper(methods))
-dfm$meas <- with(dfm, factor(meas, unique(meas), Capitalize(unique(meas))))
-
 dodge <- position_dodge(width=0.9)
-## ggp <- ggplot(dfm)+
-##   facet_grid(method~.)+
-##   geom_hline(yintercept=c(1/(1:4), 0), linetype=2)+
-##   geom_bar(aes(group, Estimate, fill=meas), stat="identity", position=dodge)+
-##   geom_errorbar(aes(group, ymin=bu, ymax=bl, group=meas), width=0.025, position=dodge)+
-##   theme(axis.text.x=element_text(angle=30, hjust=1))
-
 ggp <- ggplot(dfm)+
-  facet_grid(meas~.)+
+  facet_grid(method~.)+
   geom_hline(yintercept=c(1/(1:4), 0), linetype=2)+
-  geom_bar(aes(group, Estimate, fill=method), stat="identity", position=dodge)+
-  geom_errorbar(aes(group, ymin=bu, ymax=bl, group=method), width=0.025, position=dodge)+
-  theme(axis.text.x=element_text(angle=30, hjust=1))+
-  scale_y_continuous(limits=c(0, 1.8), expand=c(0, 0))+
-  labs(x="", y=expression("Coefficient,"~lambda[C,j]))
+  geom_bar(aes(FG, Estimate, fill=meas), stat="identity", position=dodge)+
+  geom_errorbar(aes(FG, ymin=bu, ymax=bl, group=meas), width=0.025, position=dodge)+
+  theme(axis.text.x=element_text(angle=30, hjust=1))
 
-pdf(FilePath("lambdaC_coef_errorbars"), width=7, height=7)
+pdf(FilePath("lambdaC_coef_errorbars"), width=10, height=5)
 print(ggp)
 dev.off()
-
-lambdaCtable <- dcast(dfm, method+meas~group, value.var="Estimate")
-write.csv(lambdaCtable, FilePath("lambdaC_coef_actual"), row.names=FALSE)
-
-stop()
 
 ## -----------------------------------------------------------------------------0
 

@@ -45,6 +45,9 @@ colors.FG <- c(
   "peroxy acid"                   ="snow3"
 )
 
+colors.OSC <- setNames(tail(colorRampPalette(c("darkorange", "lightgray", "darkblue"))(9), -1),
+                       seq(-4, 3))
+
 labels.FG <- c(
   "alkane CH"="aCH",
   "alcohol"="aCOH",
@@ -67,5 +70,5 @@ GGColorHue <- function(n) {
 Capitalize <- function(x)
   `substring<-`(x, 1, 1, toupper(substring(x, 1, 1)))
 
-colors.OSC <- setNames(tail(colorRampPalette(c("darkorange", "lightgray", "darkblue"))(9), -1),
-                       seq(-4, 3))
+ExpandLim <- function(x, e=.03)
+  x + e*diff(x)*c(-1,1)

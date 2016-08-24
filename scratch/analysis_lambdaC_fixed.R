@@ -9,56 +9,7 @@ library(RJSONIO)
 library(ggplot2)
 theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
-PopulateEnv("mylib", c("lib/lib_collapse.R", "lib/lib_constrOptim.R"))
-
-## -----------------------------------------------------------------------------
-
-CountMethod <- function(ni=1, nC, Theta, Y, gamma, J.s) {
-  if(length(ni)==1)
-    ni <- setNames(rep(ni, nrow(Y)), rownames(Y))
-  ## 1/(gamma*sum(ni*nC)) * (ni %*% Y %*% (1/rowSums(Theta)))
-  nC.s <- nC
-  lambda.C <- setNames(numeric(length(J.s)), J.s)
-  for(j in J.s) {
-    k <- Theta[,j] > 0
-    ## gamma.s <- gamma[j]
-    Theta.s <- Theta[k,,drop=FALSE]
-    Y.s <- Y[,k,drop=FALSE]
-    lambda.C[j] <- 1/(sum(ni %*% Y.s)) *
-      (ni %*% Y.s %*% (1/(Theta.s %*% gamma)))
-  }
-  lambda.C
-}
-
-CountMethod2 <- function(Theta, gamma, J.s) {
-  lambda.C <- setNames(numeric(length(J.s)), J.s)
-  for(j in J.s) {
-    k <- Theta[,j] > 0
-    Theta.s <- Theta[k,,drop=FALSE]
-    lambda.C[j] <- mean(1/(Theta.s %*% gamma))
-  }
-  lambda.C
-}
-
-## (need for phenol in set4)
-ApproxSolve <- function(X, Y, B=matrix(0, ncol(X), ncol(Y), dimnames=list(colnames(X), colnames(Y))), thresh=1, inc=1) {
-  ## reduce dimensionality of the problem but keep the dimensions
-  ##   of the original solution (if it worked) in the output
-  out <- try(solve(t(X) %*% X, t(X) %*% Y), TRUE)
-  if(class(out)=="try-error") {
-    j <- names(which(colSums(X) > thresh))
-    ApproxSolve(X[,j], Y, B, thresh+inc) ## recursive!
-  } else {
-    B[rownames(out), colnames(out)] <- out
-    B
-  }
-}
-
-Vec2Mat <- function(x, column="Y") {
-  x <- as.matrix(x)
-  colnames(x) <- column
-  x
-}
+PopulateEnv("mylib", c("lib/lib_collapse.R", "lib/lib_constrOptim.R", "lib/lib_lambdaC.R"))
 
 ## -----------------------------------------------------------------------------
 
@@ -70,35 +21,90 @@ svoc <- ReadFile("svoc")$compounds
 
 ## -----------------------------------------------------------------------------
 
-DBind[measlist.collapsed, matrices.collapsed] <-
-  AggGroups(collapserule, measlist, matrices)
+uniq <- with(matrices, UniqueMapping(Theta))
+
+DBind[measlist.collapsed, matrices.collapsed, uniq.collapsed] <-
+  AggGroups(collapserule, measlist, matrices, uniq)
 
 ## -----------------------------------------------------------------------------
 
 matrices.original <- matrices
 measlist.original <- measlist
+uniq.original <- uniq
 
-loopvars <- list(c("matrices.original", "measlist.original"),
-                 c("matrices.collapsed", "measlist.collapsed"))
+loopvars <- list(c("matrices.original", "measlist.original", "uniq.original"),
+                 c("matrices.collapsed", "measlist.collapsed", "uniq.collapsed"))
 
 for(.elem in loopvars) {
 
   DBind[X, Y, Theta, gamma] <- get(.elem[1])
   measlist <- get(.elem[2])
+  uniq <- get(.elem[3])
+
+  multi <- with(subset(uniq, group %in% group[duplicated(group)]),
+                split(data.frame(ctype, value), group))
+
+  if(length(multi) > 0) {
+    for(i in names(multi)) {
+      oldlab <- multi[[i]]$ctype
+      mval <- multi[[i]]$value
+      newlab <- paste(oldlab, collapse="+")
+      ##
+      Y <- cbind(Y[,setdiff(colnames(Y),oldlab)],
+                 last=Y[,oldlab] %*% mval)
+      colnames(Y)[ncol(Y)] <- newlab
+      ##
+      Theta <- rbind(Theta[setdiff(rownames(Theta),oldlab),],
+                     Theta[oldlab[1],])
+      rownames(Theta)[nrow(Theta)] <- newlab
+      ##
+      uniq <- rbind(subset(uniq, !ctype %in% oldlab),
+                    data.frame(ctype=newlab, group=i, value=mval[1]))
+    }
+  }
 
   for(.label in names(measlist)) {
 
     meas <- measlist[[.label]]
+    measC <- names(which(rowSums(Theta[,meas]) > 0))
 
-    ## thresh <- 1 # > 0 produces singularity
-    ## meas <- intersect(meas, names(which(colSums(X[svoc,meas]) > thresh)))
+    fullm <- list(ctype=measC, group=meas)
+    extra <- list(ctype=intersect(uniq$ctype, measC),
+                  group=intersect(uniq$group, meas))
 
-    measC <- rowSums(Theta[,meas]) > 0
+    Y.u <- Y[svoc,extra$ctype,drop=FALSE]
+    X.u <- X[svoc,extra$group,drop=FALSE]
+
+    meas <- setdiff(meas, uniq$group)
+    measC <- setdiff(measC, uniq$ctype)
     Theta.s <- sweep(Theta[measC,meas], 2, gamma[meas],`*`)
     nC.s <- rowSums(Y[svoc,measC])
     Y.s <- Y[svoc,measC]
     X.s <- X[svoc,meas]
     gamma.s <- gamma[meas]
+
+    ## -----------------------------------------------------------------------------
+
+    ExpandPhi <- function(Phi) {
+      n <- sapply(fullm[c("group", "ctype")], length)
+      p <- matrix(0, n[1], n[2], dimnames=fullm[c("group", "ctype")])
+      grid <- do.call(expand.grid, c(dimnames(Phi), list(stringsAsFactors=FALSE)))
+      for(i in seq(nrow(grid)))
+        p[grid[i,1],grid[i,2]] <- Phi[grid[i,1],grid[i,2]]
+      for(i in seq(nrow(uniq)))
+        if(uniq[i,"group"] %in% rownames(p) && uniq[i,"ctype"] %in% colnames(p))
+          p[uniq[i,"group"],uniq[i,"ctype"]] <- uniq[i,"value"]
+      p
+    }
+
+    ExpandLambdaC <- function(lambdaC) {
+      lam <- with(fullm, setNames(numeric(length(group)), group))
+      lam[names(lambdaC)] <- lambdaC
+      for(i in seq(nrow(uniq)))
+        if(uniq[i,"group"] %in% names(lam))
+          lam[uniq[i,"group"]] <- uniq[i,"value"]
+      lam
+    }
 
     ## -----------------------------------------------------------------------------
 
@@ -113,6 +119,8 @@ for(.elem in loopvars) {
 
     Phi$constr <- BoundedLsq2(X.s, Y.s, init=0, outer.iterations=1e3)
 
+    Phi[] <- lapply(Phi, ExpandPhi)
+
     ## -----------------------------------------------------------------------------
 
     ## calculation of lambda
@@ -126,15 +134,17 @@ for(.elem in loopvars) {
     lambdaC$constr.rowsum <- rowSums(Phi$constr)
     lambdaC$ginv.rowsum <- rowSums(Phi$ginv)
 
+    lambdaC[] <- lapply(lambdaC, ExpandLambdaC)
+
     ## -----------------------------------------------------------------------------
 
     ## C-type evaluation
 
     lf.ctype <- full_join(
-      melt(Y.s, varnames=c("compound", "ctype"), value.name="ref"),
+      melt(cbind(Y.s, Y.u), varnames=c("compound", "ctype"), value.name="ref"),
       ldply(Phi, function(Phi, X)
-        melt(X %*% Phi, varnames=c("compound", "ctype"), value.name="est"),
-        X.s, .id="method")
+        melt(X[,rownames(Phi)] %*% Phi, varnames=c("compound", "ctype"), value.name="est"),
+        cbind(X.s, X.u), .id="method")
     )
 
     limits <- with(lf.ctype, data.frame(lim=range(c(ref, est))))
@@ -156,14 +166,16 @@ for(.elem in loopvars) {
 
     lambdaC.mat <- do.call(rbind, lambdaC)
 
-    lf.nC <- melt(data.frame(compound=rownames(Y.s), ref=rowSums(Y.s), X.s %*% t(lambdaC.mat)),
+    lf.nC <- melt(data.frame(compound=rownames(Y.s),
+                             ref=rowSums(cbind(Y.s, Y.u)),
+                             cbind(X.s, X.u)[,colnames(lambdaC.mat)] %*% t(lambdaC.mat)),
                   id.vars=c("compound", "ref"), variable.name="method", value.name="est")
     lf.nC <- left_join(lf.nC, select(molec.attr, compound, logC0))
 
     limits <- with(lf.nC, data.frame(lim=range(c(ref, est))))
 
     ggp <- ggplot(lf.nC)+
-      geom_point(aes(ref, est, color=logC0), position=position_jitter(w=.25, h=0))+
+      geom_point(aes(ref, est, color=logC0), position=position_jitter(w=.1, h=0))+
       facet_wrap(~method)+
       geom_abline(intercept=0, slope=1)+
       geom_blank(aes(lim, lim), data=limits)

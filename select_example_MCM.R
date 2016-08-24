@@ -60,7 +60,7 @@ ggp <- ggplot(frac.lf)+
   scale_x_continuous(expand=c(0, 0))+
   scale_y_continuous(expand=c(0, 0))+
   labs(x="Hour", y="Carbon fraction")+
-  geom_text(aes(x=Inf, y=-Inf, label=letter), data=lett)+
+  geom_text(aes(x=Inf, y=Inf, label=letter), hjust=1, vjust=1, size=5, data=lett)+
   theme(panel.margin = unit(.8, "lines"))+
   scale_fill_discrete(name="Carbon type")
 
@@ -88,7 +88,7 @@ ggp <- ggplot(example.subset %>%
               arrange(as.numeric(clabel))) +
   geom_bar(aes(compound, nC, fill=clabel), size=.1, col="white", stat="identity")+
   theme(axis.text.x=element_text(angle=60, hjust=1))+
-  labs(x="", y=expression(n[C]~(mu*mole/m^3)))+
+  labs(x="", y=expression(italic(n)[C]~(mu*mole/m^3)))+
   scale_y_continuous(limits=c(0, 4), expand=c(0, 0))+
   scale_fill_discrete("Carbon\ntype")
 
@@ -96,7 +96,7 @@ pdf(FilePath("plot_compound_abundance"), width=7, height=5.5)
 print(ggp)
 dev.off()
 
-stop()
+stop("*** end of script ***")
 
 ## -----------------------------------------------------------------------------
 

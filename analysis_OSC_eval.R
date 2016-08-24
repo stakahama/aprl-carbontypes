@@ -59,7 +59,7 @@ wf[,meas.] <- cbind(wf[,meas.[1],drop=FALSE], t(apply(wf[,meas.], 1, diff)))
 ## -----------------------------------------------------------------------------
 
 nC <- full_join(melt(wf, measure.vars=meas., variable.name="meas", value.name="nC"),
-                carbon.attr %>% select(ctype, OSC), by="ctype")
+                carbon.attr %>% distinct(ctype, OSC), by="ctype")
 
 ggplot(nC)+
   geom_bar(aes(OSC, nC, fill=meas), stat="identity", position="stack")+
