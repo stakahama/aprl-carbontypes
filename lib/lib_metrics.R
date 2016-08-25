@@ -124,6 +124,6 @@ Calculate2 <- function(n, X, Y, Theta, gamma, zFG, Lambda, zeta, cOM, i=TRUE, k=
 
 
 Ctypemass <- function(Theta, gamma, Lambda) {
-  ## approximate
+  ## approximate for ester-containing carbon
   am["C"]+(Theta %*% (t(Lambda[heteroatoms,]) * gamma) %*% am[heteroatoms])[,1]
 }

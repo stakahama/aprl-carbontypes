@@ -27,8 +27,12 @@ wf.groups <- AddCtypeWide(fulltable)
 ##   (including heteroatoms) are double-counted
 
 atoms <- adjtable %>% filter(Shorttype(atom1_type)=="C") %>%
-  rename(atom=atom1) %>% mutate(atom2_type=factor(Shorttype(atom2_type), names(am))) %>%
-  dcast(., compound+atom~atom2_type, length, value.var="atom2", drop=FALSE)
+  rename(atom=atom1, type=atom1_type) %>%
+  mutate(atom2_type=factor(Shorttype(atom2_type), names(am))) %>%
+  dcast(., compound+atom+type~atom2_type, length, value.var="atom2")
+
+missing <- setdiff(names(am), names(atoms))
+atoms[,missing] <- 0
 
 merged <- full_join(wf.groups, atoms)
 
@@ -47,7 +51,7 @@ merged$ctype2 <- NULL
 id.vars <- c("compound", "atom", "type", "ctype")
 
 carbon.attr <- full_join(
-  merged[, c(id.vars, names(am))],
+  merged,#[, c(id.vars, names(am))],
   AtomOSC(adjtable)
 )
 

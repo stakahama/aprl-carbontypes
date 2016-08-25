@@ -74,6 +74,7 @@ mat <- acast(nC %>% filter(phase=="aer"), meas~OSC, sum, value.var="nC")
 colors.sets <- setNames(brewer.pal(8, "Set1"), rownames(mat))
 osc$index <- seq_along(osc$meas)
 osc$meas <- Capitalize(osc$meas)
+yval <- as.integer(colnames(mat))
 
 xmax <- ceiling(max(colSums(mat)))
 
@@ -88,7 +89,7 @@ i <- 1
 ##
 plot.new()
 plot.window(c(0, xmax), ExpandLim(ylim), xaxs="i")
-ypos <- outer(seq(min(ylim), max(ylim)), .35*c(-1,1), "+")
+ypos <- outer(seq(min(yval), max(yval)), .35*c(-1,1), "+") # fixed
 Addbars(mat, at=ypos, col=colors.sets)
 axis(1)
 axis(2, las=1)

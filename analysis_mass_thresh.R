@@ -14,22 +14,23 @@ PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_metrics.R"))
 
 ## -----------------------------------------------------------------------------
 
-DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
+DBind[X, Y, Theta, gamma, zFG, Lambda] <- c(ReadFile("matrices"), ReadFile("matrices_2"))
 carbon.attr <- ReadFile("carbonattr")
 molec.attr <- ReadFile("molecattr")
 molec.moles <- lapply(setNames(FilePath(c("tseries_gas", "tseries_aer")), c("gas", "aer")),
                       ReadTSeries)
 decisions <- as.list(ReadFile("example_1"))
 
+
 ## -----------------------------------------------------------------------------
 
 mw <- with(molec.attr, setNames(MW, compound))
 common <- intersect(names(molec.moles$aer), molec.attr$compound)
 n <- unclass(Slice(molec.moles$aer, decisions$hour))[1,common]
-m <- ppb2microg(n, mw)
+m <- ppb2micromolm3(n, mw)
 Yp <- n*Y[common,]
 
-cmass <- with(CarbonTypeMass(carbon.attr), setNames(OM, ctype))
+cmass <- Ctypemass(Theta, gamma, Lambda)
 
 ## -----------------------------------------------------------------------------
 
@@ -108,4 +109,4 @@ masses <- sapply(thresh, function(v, n) sum(n[1:v]), mC)
 par(mfrow=c(1,1))
 plot(thresh, masses)
 
-cbind(thresh, round(masses/max(masses), 4))
+cbind(thresh, round(masses/max(masses, na.rm=TRUE), 4))
