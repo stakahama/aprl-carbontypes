@@ -100,6 +100,10 @@ barplot <- function(...) {
   i <<- i+1
 }
 
+Parset <- function() {
+  par(mar=c(2, 2, 2, 1), oma=c(1, 2, 0, 0))
+  par(mgp=c(1.8, .2, 0), tck=0.025, las=1)
+}
 
 ylims <- list(
   "OC"=c(0, 1.02),
@@ -111,11 +115,6 @@ ylims <- list(
 )
 
 colors.C <- with(list(x=clabel.levs), setNames(GGColorHue(length(x)), x))
-
-Parset <- function() {
-  par(mar=c(2, 2, 2, 1), oma=c(1, 2, 0, 0))
-  par(mgp=c(1.8, .2, 0), tck=0.025, las=1)
-}
 
 pdf("outputs/production_fig_props.pdf", width=10, height=5)
 layout(matrix(1:8, ncol=4, byrow=TRUE))

@@ -3,6 +3,7 @@ Radicalgroups <- function(X)
   rownames(X)[apply(X[,grepl("radical", colnames(X))] > 0, 1, any)]
 
 AggGroups <- function(agg, meas, matrices, uniq=NULL) {
+  ## aggregate groups - e.g., CO = ketone + aldehyde
 
   newmatrices <- matrices
   newmeas <- list()

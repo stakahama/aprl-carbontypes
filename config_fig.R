@@ -42,7 +42,8 @@ colors.FG <- c(
   "peroxy nitrate"                ="gray",
   "oxy radical"                   ="gray",
   "C=O-O"                         ="gray",
-  "peroxy acid"                   ="snow3"
+  "peroxy acid"                   ="snow3",
+  "CO"                            ="#008080"
 )
 
 colors.OSC <- setNames(tail(colorRampPalette(c("darkorange", "lightgray", "darkblue"))(9), -1),
@@ -72,3 +73,4 @@ Capitalize <- function(x)
 
 ExpandLim <- function(x, e=.03)
   x + e*diff(x)*c(-1,1)
+

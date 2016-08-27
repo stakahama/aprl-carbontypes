@@ -13,8 +13,10 @@ ReadMicromolm3 <- function(...) {
 Slice <- function(x, ...)
   UseMethod("Slice")
 
-Slice.zoo <- function(x, i, tol=.Machine$double.eps)
-  x[abs(zoo::index(x)-i) < tol,]
+Slice.zoo <- function(x, i, tol=.Machine$double.eps) {
+  ix <- sapply(i, function(x, x0, tol) abs(x-x0) < tol, zoo::index(x) < tol)
+  x[ix,]
+}
 
 ppb2micromolm3 <- function(xi, p=1, T=298.15) {
   # ppb (\xi) to micromoles per cubic meter

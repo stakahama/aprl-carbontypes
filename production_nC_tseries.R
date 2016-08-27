@@ -9,10 +9,10 @@ library(RJSONIO)
 library(gridExtra)
 library(ggplot2)
 library(pryr)
-theme_set(theme_bw())
 PopulateEnv("IO", "config_IO.R")
 PopulateEnv("fig", "config_fig.R")
 PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_metrics.R", "lib/lib_collapse.R"))
+GGTheme()
 
 ## -----------------------------------------------------------------------------
 
@@ -24,10 +24,12 @@ clabels <- ReadFile("clabels")
 carbon.attr <- ReadFile("carbonattr")
 molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 decisions <- as.list(ReadFile("example_1"))
-lambdaC <- ReadFile("lambdaC_coef_actual")
+## lambdaC <- ReadFile("lambdaC_coef_actual")
 
 ff <- list.files("outputs", "lambdaC_values.+\\.csv$", full=TRUE)
 names(ff) <- sub(".+(set[0-9])(_collapsed)?\\.csv", "\\1\\2", basename(ff))
+
+lambdaC <- readRDS("outputs/lambdaC_array.rds")
 
 ## -----------------------------------------------------------------------------
 
@@ -35,20 +37,8 @@ uniq <- UniqueMapping(matrices$Theta)
 
 ## -----------------------------------------------------------------------------
 
-ReplZero <- function(x) replace(x, is.na(x), 0)
-
-margins <- c("meas", "method")
-lambdaC <- daply(lambdaC, margins,
-                 function(x, j) ReplZero(unlist(x[setdiff(names(x), j)])),
-                 margins)
-
-## -----------------------------------------------------------------------------
-
 time <- index(molec.moles)
 n <- coredata(molec.moles)
-
-## nC <- n[,cmpds] %*% rowSums(Y[cmpds,])
-## fg <- n[,cmpds] %*% X[cmpds,]
 
 ## -----------------------------------------------------------------------------
 
@@ -67,6 +57,7 @@ NCratio <- function(meas, method, lambdaC, n, matrices, measlist, time) {
   data.frame(time, meas, method, value=nC.r)
 }
 
+margins <- c("meas", "method")
 nC.h <- do.call(
   Map, c(list(NCratio),
          do.call(expand.grid, c(dimnames(lambdaC)[margins], stringsAsFactors=FALSE)),
@@ -74,6 +65,8 @@ nC.h <- do.call(
 )
 
 tables <- ldply(unname(nC.h))
+
+## -----------------------------------------------------------------------------
 
 ## tables <- ldply(tables, .id="case") %>%
 ##   melt(., c("time", "case"), variable.name="meas")
@@ -85,56 +78,13 @@ ggp <- ggplot(tables)+
   labs(x="Hour", y="Ratio")+
   lims(y=1+.2*c(-1,1))
 
-pdf(FilePath("plot_nC_tseries"))
-print(ggp)
-dev.off()
-
-## -----------------------------------------------------------------------------
-
-## *** collapsed ***
-
-DBind[X, Y, Theta, gamma] <- matrices
-
-cmpds <- intersect(colnames(n), rownames(Y))
-
-ave.nom <- Nominal(lambdaC, "count", decisions$lambdaC.nominal)
-
-NCratio2 <- function(meas, lambdaC, n, X, Y, Theta, gamma, measlist, time) {
-  j <- intersect(measlist[[meas]], colnames(Theta))
-  Y.s <- sweep(Y, 2, sign(Theta[,j] %*% gamma[j]), `*`)
-  G <- n %*% X
-  nC.s <- n %*% rowSums(Y.s)
-  nC.r <- (G[,j] %*% lambdaC[meas, j]) / nC.s
-  data.frame(time, meas, value=nC.r)
-}
-
-nC.h <- do.call(
-  Map, c(list(NCratio2),
-         dimnames(ave.nom)[1],
-         list(MoreArgs=NamedList(lambdaC=ave.nom,
-                                 n=n[,cmpds], X=X[cmpds,], Y=Y[cmpds,], Theta, gamma,
-                                 measlist, time)))
-)
-
-tables2 <- ldply(unname(nC.h))
-
-ggp <- ggplot(tables2)+
-  geom_line(aes(time, value, color=meas))+
-  facet_wrap(~method)
-
+## pdf(FilePath("plot_nC_tseries"))
 ## print(ggp)
-
-## -----------------------------------------------------------------------------
-
-merged <- full_join(
-  tables,
-  tables2 %>% mutate(method="nominal")
-)
-
+## dev.off()
 
 methods <- c("count", "solve", "fit", "nominal")
-merged$method <- factor(merged$method, methods, toupper(methods))
-merged$meas <- with(merged, factor(meas, unique(meas), Capitalize(unique(meas))))
+tables$method <- factor(tables$method, methods, toupper(methods))
+tables$meas <- with(tables, factor(meas, unique(meas), Capitalize(unique(meas))))
 
 ## another viable option:
 ##
@@ -145,10 +95,12 @@ merged$meas <- with(merged, factor(meas, unique(meas), Capitalize(unique(meas)))
 ##   lims(y=1+.2*c(-1,1))+
 ##   labs(y=expression(hat(italic(n))[C]^"*"/ italic(n)[C]^"*"))
 
-lett.labels <- with(merged, data.frame(letter=sprintf("%s) %s", letters[seq(nlevels(method))], levels(method)),
-                               method=factor(levels(method), levels(method))))
+lett.labels <- with(tables, {
+  data.frame(letter=sprintf("%s) %s", letters[seq(nlevels(method))], levels(method)),
+             method=factor(levels(method), levels(method)))
+})
 
-ggp <- ggplot(merged)+
+ggp <- ggplot(tables)+
   geom_hline(yintercept=1, size=.2, color="gray")+
   geom_line(aes(time, value, color=meas, linetype=meas))+
   facet_wrap(~method)+
@@ -161,7 +113,6 @@ ggp <- ggplot(merged)+
         strip.text.x = element_blank())
 
 pdf("outputs/nC_recovery_tseries.pdf", width=6, height=5)
-GGTheme()
 print(ggp)
 dev.off()
 

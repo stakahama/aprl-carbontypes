@@ -25,6 +25,7 @@ f3 <- "outputs/lambdaC_values_tseries.csv"
 Theta <- ReadFile("matrices")[["Theta"]]
 
 measlist <- ReadFile("meas")[["lambdaC"]]
+decisions <- as.list(ReadFile("example_1"))
 
 ## -----------------------------------------------------------------------------
 
@@ -61,7 +62,6 @@ dfm <- full_join(dfm, df3 %>% mutate(method="fit"))
 
 dfm <- dfm %>% filter(!group %in% uniq$group)
 
-
 dodge <- position_dodge(width=0.9)
 ## ggp <- ggplot(dfm)+
 ##   facet_grid(method~.)+
@@ -89,10 +89,24 @@ pdf(FilePath("lambdaC_coef_errorbars"), width=7, height=7)
 print(ggp)
 dev.off()
 
-fixed <- intersect(Reduce(union, as.list(unname(measlist))), uniq$group)
-fixed.values <- as.list(with(uniq, setNames(value, group))[fixed])
+## -----------------------------------------------------------------------------
 
-lambdaCtable <- dcast(dfm, method+meas~group, value.var="Estimate")
-lambdaCtable <- cbind(lambdaCtable, fixed.values)
-write.csv(lambdaCtable, FilePath("lambdaC_coef_actual"), row.names=FALSE)
 
+## fixed.values <- with(uniq, setNames(value, group))[fixed]
+
+## lambdaCtable <- dcast(dfm, method+meas~group, value.var="Estimate")
+## lambdaCtable <- cbind(lambdaCtable, fixed.values)
+## lambdaCtable <- lambdaCtable[,c("method", "meas", intersect(colnames(Theta), names(lambdaCtable)))]
+## write.csv(lambdaCtable, FilePath("lambdaC_coef_actual"), row.names=FALSE)
+
+fixed.groups <- intersect(Reduce(union, as.list(unname(measlist))), uniq$group)
+fixed.df <- with(uniq, data.frame(group, Estimate=value, fixed=TRUE)) %>%
+  filter(group %in% fixed.groups)
+
+dfm2 <- dfm %>% group_by(meas, method) %>%
+  do(full_join(., cbind(.[1,c("meas", "method")], fixed.df)))
+
+dfm2$group <- factor(dfm2$group, intersect(colnames(Theta), unique(dfm2$group)))
+dfm2$fixed <- ifelse(is.na(dfm2$fixed), FALSE, dfm2$fixed)
+
+saveRDS(dfm2, "outputs/lambdaC_coef_actual.rds")

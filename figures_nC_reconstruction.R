@@ -22,24 +22,7 @@ svoc <- ReadFile("svoc")$compounds
 molec.attr <- ReadFile("molecattr")
 decisions <- as.list(ReadFile("example_1"))
 
-lambdaC <- read.csv("outputs/lambdaC_coef_actual.csv", check.names=FALSE)
-
-## -----------------------------------------------------------------------------
-
-ReplZero <- function(x) replace(x, is.na(x), 0)
-id.vars <- c("meas", "method")
-
-lambdaC <- daply(lambdaC, id.vars, function(x, i)
-  ReplZero(unlist(x[setdiff(names(x), i)])), id.vars)
-
-margin <- 2
-lambdaC <- abind(c(
-  setNames(alply(lambdaC, margin), dimnames(lambdaC)[[margin]]),
-  list(nominal=Nominal(lambdaC, "count", decisions$lambdaC.nominal))
-), along=length(dim(lambdaC)))
-
-lambdaC <- aperm(lambdaC, c(1,3,2))
-
+lambdaC <- readRDS("outputs/lambdaC_array.rds")
 
 ## -----------------------------------------------------------------------------
 DBind[X, Y, Theta, gamma] <- matrices
@@ -87,6 +70,7 @@ stats.formatted$cor <- sprintf("italic(r) == %.2f", stats$cor)
 grid <- do.call(expand.grid, lapply(out[c("method", "meas")], levels))
 grid$letter <- sprintf("%s)", letters[seq(nrow(grid))])
 
+yoffset <- 1.25
 ggp <- ggplot(table)+
   geom_point(aes(ref, est, color=OSC))+
   facet_grid(meas~method)+
@@ -96,10 +80,10 @@ ggp <- ggplot(table)+
   geom_text(aes(x=-Inf, y=Inf, label=letter), data=grid, size=5, hjust=0, vjust=1)+
   ## scale_color_continuous(name=expression(logC[0]))+
   scale_color_continuous(name=expression(bar(OS)[C]), low=colors.OSC[1], high=tail(colors.OSC, 1))+
-  geom_text(aes(x=-Inf, y=Inf, label=slope), data=stats.formatted, size=5, hjust=0, vjust=2.2)+
-  geom_text(aes(x=-Inf, y=Inf, label=cor), data=stats.formatted, size=5, hjust=0, vjust=3.4, parse=TRUE)
+  geom_text(aes(x=-Inf, y=Inf, label=slope), data=stats.formatted, size=5, hjust=0, vjust=1+yoffset)+
+  geom_text(aes(x=-Inf, y=Inf, label=cor), data=stats.formatted, size=5, hjust=0, vjust=1+2*yoffset, parse=TRUE)
 
-pdf("outputs/nC_est_scatterplot.pdf", width=9, height=7)
+pdf("outputs/nC_est_scatterplot.pdf", width=9, height=6)
 print(ggp)
 dev.off()
 
