@@ -14,7 +14,7 @@ Slice <- function(x, ...)
   UseMethod("Slice")
 
 Slice.zoo <- function(x, i, tol=.Machine$double.eps) {
-  ix <- sapply(i, function(x, x0, tol) abs(x-x0) < tol, zoo::index(x) < tol)
+  ix <- sapply(i, function(x, x0, tol) abs(x-x0) < tol, zoo::index(x), tol)
   x[ix,]
 }
 

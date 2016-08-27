@@ -8,6 +8,7 @@ library(reshape2)
 library(Rfunctools)
 library(RJSONIO)
 library(pryr)
+library(xtable)
 library(ggplot2)
 PopulateEnv("IO", "config_IO.R")
 PopulateEnv("fig", "config_fig.R")
@@ -76,17 +77,27 @@ wf[] <- wf/sum(wf[nrow(wf),]) # normalize
 lf <- melt(wf, c("clabel", "tier"), value.name="cumsum") %>%
   mutate(clabel=factor(clabel, clabel.levs))
 
-
 levels(lf$tier) <- Capitalize(levels(lf$tier))
 
-ggp <- ggplot(lf)+
+ggp <- ggplot(lf %>% filter(clabel %in% clabel.levs[1:20]))+
   geom_bar(aes(clabel, cumsum, fill=tier), stat="identity", position="stack")+
-  theme(axis.text.x=element_text(angle=60, hjust=1))+
+  theme(axis.text.x=element_text(angle=30, hjust=1, size=14))+
   scale_y_continuous(limits=c(0, 1), expand=c(0, 0))+
   labs(x="Carbon type", y="Cumulative carbon fraction")+
-  theme(axis.text.x=element_text(size=10))+
   scale_fill_brewer(name="", palette = "Set1")
 
-pdf(FilePath("plot_nC_cumsum"), width=9, height=6)
+pdf(FilePath("plot_nC_cumsum"), width=7, height=5.5)
 print(ggp)
 dev.off()
+
+## -----------------------------------------------------------------------------
+
+## *** export table (carbon type abundance and their groups) ***
+
+th <- Theta[clabel.levs[1:15],]
+jj <- apply(th > 0, 2, any)
+jj <- names(sort(colSums(th[,jj]), decreasing=TRUE))
+th.ord <- th[order(as.numeric(rownames(th))),jj]
+colnames(th.ord) <- Relabel(colnames(th.ord), labels.FG)
+print(xtable(th.ord))
+
