@@ -64,7 +64,7 @@ stats <- table %>% group_by(meas, method) %>%
   do(Stats(.))
 
 stats.formatted <- stats
-stats.formatted$slope <- sprintf("slope = %.2f", stats$slope)
+stats.formatted$slope <- sprintf("ratio = %.2f", stats$slope)
 stats.formatted$cor <- sprintf("italic(r) == %.2f", stats$cor)
 
 grid <- do.call(expand.grid, lapply(out[c("method", "meas")], levels))
@@ -86,5 +86,3 @@ ggp <- ggplot(table)+
 pdf("outputs/nC_est_scatterplot.pdf", width=9, height=6)
 print(ggp)
 dev.off()
-
-

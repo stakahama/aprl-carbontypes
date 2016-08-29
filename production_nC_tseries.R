@@ -105,7 +105,7 @@ ggp <- ggplot(tables)+
   geom_line(aes(time, value, color=meas, linetype=meas))+
   facet_wrap(~method)+
   lims(y=1+.2*c(-1,1))+
-  labs(x="Hour", y=expression("Recovery fraction,"~hat(italic(n))[C]^"*"/ italic(n)[C]^"*"))+
+  labs(x="Hour", y=expression("Ratio,"~hat(italic(n))[C]^"*"/ italic(n)[C]^"*"))+
   scale_color_discrete(guide=guide_legend(title=""))+
   scale_linetype_discrete(guide=guide_legend(title=""))+
   geom_text(aes(x=-Inf, y=Inf, label=letter), data=lett.labels, size=5, hjust=0, vjust=1.2)+

@@ -100,4 +100,3 @@ jj <- names(sort(colSums(th[,jj]), decreasing=TRUE))
 th.ord <- th[order(as.numeric(rownames(th))),jj]
 colnames(th.ord) <- Relabel(colnames(th.ord), labels.FG)
 print(xtable(th.ord))
-

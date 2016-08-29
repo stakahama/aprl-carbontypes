@@ -64,6 +64,34 @@ ggp <- ggplot(frac.lf)+
   theme(panel.margin = unit(.8, "lines"))+
   scale_fill_discrete(name="Carbon type")
 
+## moles.init <- moles.lf %>% filter(time < 1e-5) %>% summarize(nC=sum(nC)) %>% .[[1]]
+
+## moles.total <- moles.lf %>% group_by(time) %>% summarize(nC=sum(nC))
+
+## frac.lf <- moles.lf %>% group_by(phase, time) %>%
+##   mutate(frac=nC/moles.init, clabel=factor(clabel, seq(nlevels(clabel)))) %>%
+##   arrange(as.numeric(clabel))
+
+## levs <- c(Gas="gas", Aerosol="aer")
+## frac.lf$phase <- with(frac.lf, factor(phase, levs, names(levs)))
+
+## lett <- data.frame(letter=sprintf("%s)", letters[1:2]),
+##                    phase=factor(names(levs), names(levs)))
+
+## limits <- data.frame(value=c(0, 1, 0, 0.15),
+##                      phase=factor(rep(names(levs),each=2), names(levs)))
+
+## ggp <- ggplot(frac.lf)+
+##   geom_area(aes(time, frac, fill=clabel), size=.1, color="white")+
+##   facet_grid(phase~., scale="free_y")+
+##   geom_blank(aes(value, value), data=limits)+
+##   scale_x_continuous(expand=c(0, 0))+
+##   scale_y_continuous(expand=c(0, 0))+
+##   labs(x="Hour", y="Carbon fraction")+
+##   geom_text(aes(x=Inf, y=Inf, label=letter), hjust=1, vjust=1, size=5, data=lett)+
+##   theme(panel.margin = unit(.8, "lines"))+
+##   scale_fill_discrete(name="Carbon type")
+
 pdf(FilePath("plot_ctype_tseries"), width=7, height=5.5)
 print(ggp)
 dev.off()
@@ -83,15 +111,20 @@ cumul <- example.subset %>% group_by(clabel) %>% summarize(nC=sum(nC)) %>%
 
 clabel.keep <- with(cumul, clabel[1:decisions$ncarbon])
 
-ymax <- ceiling(max(example.subset %>% group_by(compound) %>% summarize(nC=sum(nC)) %>% .[["nC"]]))
+## ymax <- ceiling(max(example.subset %>% group_by(compound) %>% summarize(nC=sum(nC)) %>% .[["nC"]]))
 
-ggp <- ggplot(example.subset %>%
+nC.tot <- example.subset %>% summarize(nC=sum(nC)) %>% .[["nC"]]
+
+ymax <- .31
+
+ggp <- ggplot(example.subset %>% mutate(nC=nC/nC.tot) %>%
               filter(clabel %in% clabel.keep) %>%
               arrange(as.numeric(clabel))) +
   geom_bar(aes(compound, nC, fill=clabel), size=.1, col="white", stat="identity")+
   theme(axis.text.x=element_text(angle=60, hjust=1))+
-  labs(x="", y=expression(italic(n)[C]~(mu*mole/m^3)))+
-  scale_y_continuous(limits=c(0, ymax+.5), expand=c(0, 0))+
+  ## labs(x="", y=expression(italic(n)[C]~(mu*mole/m^3)))+
+  labs(x="", y="Carbon fraction")+
+  scale_y_continuous(limits=c(0, ymax), expand=c(0, 0))+
   scale_fill_discrete("Carbon\ntype")
 
 pdf(FilePath("plot_compound_abundance"), width=7, height=5.5)

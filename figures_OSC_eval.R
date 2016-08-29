@@ -76,7 +76,9 @@ osc$index <- seq_along(osc$meas)
 osc$meas <- Capitalize(osc$meas)
 yval <- as.integer(colnames(mat))
 
-xmax <- ceiling(max(colSums(mat)))
+mat <- mat/sum(mat)
+xmax <- 0.32
+## xmax <- ceiling(max(colSums(mat)))
 
 pdf("outputs/OSC_distr_meas.pdf", width=8, height=4)
 ## layout(t(1:2), width=c(3,2))
@@ -98,7 +100,8 @@ box()
 ##        legend=rownames(mat), fill=col, border=NA, bty="n")
 legend(par("usr")[2], par("usr")[4], xjust=1, yjust=1, xpd=NA,
        legend=rownames(mat), fill=colors.sets[rownames(mat)], border=NA, bty="n")
-mtext(expression(italic(n)[C]~(mu*"mole"/m^3)), 1, line=par("mgp")[1])
+## mtext(expression(italic(n)[C]~(mu*"mole"/m^3)), 1, line=par("mgp")[1])
+mtext("Carbon fraction", 1, line=par("mgp")[1])
 mtext(expression(OS[C]), 3)
 text(par("usr")[1], par("usr")[4], adj=c(0, -.3), xpd=NA,
      sprintf("%s)", letters[i]), cex=1.2)

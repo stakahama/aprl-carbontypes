@@ -3,3 +3,4 @@ data/*
 outputs/*
 *_formatted.csv
 *_massc.csv
+test*.R
