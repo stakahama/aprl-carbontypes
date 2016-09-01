@@ -103,7 +103,7 @@ atomr.apin <- local({
 ## -----------------------------------------------------------------------------
 ## -----------------------------------------------------------------------------
 
-## *** van Krevlin diagram ***
+labels.est <- c("MEAS-PREV", "MEAS-NOM", "SIM-SET1", "SIM-FULL")
 
 pdf("outputs/fig_Sax.pdf", width=14, height=5)
 
@@ -114,6 +114,8 @@ par(cex=1.2)
 
 colors.sample <- colorRampPalette(c("darkblue", "cornflowerblue"))(length(samples))
                                         #c("orange", "midnightblue")
+
+## *** van Krevlin diagram ***
 
 pt.cex <- 1.2
 plot.new()
@@ -132,7 +134,7 @@ axis(1)
 axis(2)
 box()
 legend("bottomleft", pch=c(18, 1, 19, 15, 17), pt.cex=c(1.4, 1, 1, 1, 1),
-       legend=c(expression(alpha*"-pinene"), "Obs., base case", "Obs., revised", "Sim., Set1", "Sim., Full"),
+       legend=c(expression(alpha*"-pinene"), labels.est),
        bty="n", cex=.95)
 legend(.5, par("usr")[3], xjust=0, yjust=0, legend=c("4h", "21h"), border=NA, fill=colors.sample, bty="n")
 title(xlab="O/C", ylab="H/C", xpd=NA, cex.lab=1.2)
@@ -172,7 +174,7 @@ Stackrect(8, omocm1.sim[["set1"]][late,],  border=NA)
 Stackrect(9, omocm1.sim[["full"]][late,],  border=NA)
 axis(1, positions, FALSE)
 text(positions, par("usr")[3]-par("cxy")[2]*.5, adj=c(1, .5), srt=30,
-     rep(c("Obs., base case", "Obs., revised", "Sim., Set1", "Sim., Full"), 2),
+     rep(labels.est, 2),
      xpd=NA)
 yval <- seq(0, par("usr")[4], .2)
 axis(2, yval, sprintf("%.1f", yval+1))
@@ -205,7 +207,7 @@ htype(8, osc.sim[["set1"]][late])
 htype(9, osc.sim[["full"]][late])
 axis(1, positions, FALSE)
 text(positions, par("usr")[3]-par("cxy")[2]*.5, adj=c(1, .5), srt=30,
-     rep(c("Obs., base case", "Obs., revised", "Sim., Set1", "Sim., Full"), 2),
+     rep(labels.est, 2),
      xpd=NA)
 axis(2)
 box()

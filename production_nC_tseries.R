@@ -100,11 +100,13 @@ lett.labels <- with(tables, {
              method=factor(levels(method), levels(method)))
 })
 
+ex <- .2
 ggp <- ggplot(tables)+
+  ## geom_hline(yintercept=seq(1-ex, 1+ex, .05), linetype=2, size=.2, color="gray")+
   geom_hline(yintercept=1, size=.2, color="gray")+
-  geom_line(aes(time, value, color=meas, linetype=meas))+
+  geom_line(aes(time, value, color=meas, linetype=meas), size=1.5)+
   facet_wrap(~method)+
-  lims(y=1+.2*c(-1,1))+
+  lims(y=1+ex*c(-1,1))+
   labs(x="Hour", y=expression("Ratio,"~hat(italic(n))[C]^"*"/ italic(n)[C]^"*"))+
   scale_color_discrete(guide=guide_legend(title=""))+
   scale_linetype_discrete(guide=guide_legend(title=""))+
