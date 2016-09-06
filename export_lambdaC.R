@@ -15,7 +15,7 @@ PopulateEnv("mylib", "lib/lib_lambdaC.R")
 ## -----------------------------------------------------------------------------
 
 DBind[X, Y, Theta, gamma] <- ReadFile("matrices")
-lambdaCdf <- readRDS("outputs/lambdaC_coef_actual.rds")
+lambdaCdf <- ReadFile("lambdaC_coef_actual_f")
 decisions <- as.list(ReadFile("example_1"))
 
 ## -----------------------------------------------------------------------------
@@ -39,7 +39,7 @@ lamCarr <- abind(c(lamClist[method.order], list(nominal=lamCnom)), along=length(
 names(dimnames(lamCarr)) <- c(id[2], "group", id[1])
 lambdaC <- aperm(lamCarr, c(1,3,2))
 
-saveRDS(lambdaC, "outputs/lambdaC_array.rds")
+saveRDS(lambdaC, FilePath("lambdaC_array"))
 
 ## -----------------------------------------------------------------------------
 

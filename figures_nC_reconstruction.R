@@ -22,7 +22,7 @@ svoc <- ReadFile("svoc")$compounds
 molec.attr <- ReadFile("molecattr")
 decisions <- as.list(ReadFile("example_1"))
 
-lambdaC <- readRDS("outputs/lambdaC_array.rds")
+lambdaC <- ReadFile("lambdaC_array")
 
 ## -----------------------------------------------------------------------------
 DBind[X, Y, Theta, gamma] <- matrices
@@ -83,6 +83,6 @@ ggp <- ggplot(table)+
   geom_text(aes(x=-Inf, y=Inf, label=slope), data=stats.formatted, size=5, hjust=0, vjust=1+yoffset)+
   geom_text(aes(x=-Inf, y=Inf, label=cor), data=stats.formatted, size=5, hjust=0, vjust=1+2*yoffset, parse=TRUE)
 
-pdf("outputs/nC_est_scatterplot.pdf", width=9, height=6)
+pdf(FilePath("plot_nC_est"), width=9, height=6)
 print(ggp)
 dev.off()

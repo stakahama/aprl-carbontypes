@@ -105,7 +105,7 @@ atomr.apin <- local({
 
 labels.est <- c("MEAS-PREV", "MEAS-NOM", "SIM-SET1", "SIM-FULL")
 
-pdf("outputs/fig_Sax.pdf", width=14, height=5)
+pdf(FilePath("plot_Sax"), width=14, height=5)
 
 par(mfrow=c(1, 3))
 par(mar=c(2, 4, 2, 1), oma=c(2.5, 0, 0, 0))

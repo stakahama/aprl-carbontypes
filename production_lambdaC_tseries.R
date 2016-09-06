@@ -90,4 +90,4 @@ ggplot(nCfit)+
   geom_line(aes(time, ratio, color=meas))+
   lims(y=1+.2*c(-1,1))
 
-write.csv(cc, "outputs/lambdaC_values_tseries.csv", row.names=FALSE)
+write.csv(cc, FilePath("lambdaC_tseries"), row.names=FALSE)

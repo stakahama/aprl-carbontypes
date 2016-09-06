@@ -101,6 +101,6 @@ ggp <- ggplot(lf)+
   labs(x="Actual value", y=expression("Relative error,"~delta))+
   theme(panel.margin.x = unit(1.5, "lines"))
 
-pdf("outputs/nC_unc_deltas.pdf", width=7, height=3.5)
+pdf(FilePath("plot_nC_unc"), width=7, height=3.5)
 print(ggp)
 dev.off()

@@ -20,7 +20,7 @@ names(ff) <- gsub("^lambdaC\\_lmfit\\_(.+)\\.rds$","\\1",basename(ff))
 f2 <- list.files("outputs", "lambdaC_count", full=TRUE)
 names(f2) <- gsub("^lambdaC\\_count\\_(.+)\\.csv$","\\1",basename(f2))
 
-f3 <- "outputs/lambdaC_values_tseries.csv"
+f3 <- ReadFile("lambdaC_tseries")
 
 Theta <- ReadFile("matrices")[["Theta"]]
 
@@ -109,4 +109,4 @@ dfm2 <- dfm %>% group_by(meas, method) %>%
 dfm2$group <- factor(dfm2$group, intersect(colnames(Theta), unique(dfm2$group)))
 dfm2$fixed <- ifelse(is.na(dfm2$fixed), FALSE, dfm2$fixed)
 
-saveRDS(dfm2, "outputs/lambdaC_coef_actual.rds")
+saveRDS(dfm2, FilePath("lambdaC_coef_actual_f"))

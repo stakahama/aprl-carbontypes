@@ -80,7 +80,7 @@ mat <- mat/sum(mat)
 xmax <- 0.32
 ## xmax <- ceiling(max(colSums(mat)))
 
-pdf("outputs/OSC_distr_meas.pdf", width=8, height=4)
+pdf(FilePath("plot_osc_distr"), width=8, height=4)
 ## layout(t(1:2), width=c(3,2))
 layout(t(1:2))
 par(tck=0.025, mgp=c(1.8, .2, 0), oma=c(2,2,1,1))

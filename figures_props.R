@@ -10,7 +10,8 @@ library(ggplot2)
 PopulateEnv("IO", "config_IO.R")
 PopulateEnv("fig", "config_fig.R")
 PopulateEnv("mylib", c("lib/lib_C_attributes.R", "lib/lib_OSC.R", "lib/lib_metrics.R"))
-source("http://ms.mcmaster.ca/~bolker/R/misc/legendx.R")
+## source("http://ms.mcmaster.ca/~bolker/R/misc/legendx.R")
+source("lib/legendx.R")
 
 ## -----------------------------------------------------------------------------
 
@@ -79,7 +80,7 @@ omoc$meas <- factor(omoc$meas, meas.levs, names(meas.levs))
 LegendFig <- function(...) {
   plot.new()
   plot.window(0:1, 0:1)
-  get("legend", globalenv())(.45, 1, xjust=.5, yjust=1, ..., bty="n", xpd=NA)
+  get("legend", globalenv())(..., bty="n", xpd=NA)
 }
 
 barplot <- function(...) {
@@ -115,9 +116,10 @@ ylims <- list(
 )
 
 colors.C <- with(list(x=clabel.levs), setNames(GGColorHue(length(x)), x))
+cex.exp <- c(1.2, .8)
 
-pdf("outputs/production_fig_props.pdf", width=10, height=5)
-layout(matrix(1:8, ncol=4, byrow=TRUE))
+pdf(FilePath("plot_props_1"), width=7, height=2.9)
+layout(matrix(1:3, ncol=3, byrow=TRUE), width=c(1, 1, .5))
 Parset()
 i <- 1
 ##
@@ -127,11 +129,15 @@ for(.var in levels(mass$variable)) {
   barplot(.mat[names(colors.C),], ylim=ylims[[.var]], col=colors.C)
   mtext(.var, 3)
 }
-cex.exp <- c(1.2, .8)
+mtext("Recovery fraction", 2, outer=TRUE, las=0, line=.5)
 with(list(x=names(colors.C)),
-     LegendFig(title="Carbon type", legend=x, fill=colors.C[x], ncol=2, border=NA, box.cex=cex.exp))
-with(list(x=Relabel(levels(omoc$group),labels.FG)),
-     LegendFig(title="FG", legend=x, fill=colors.FG[x], ncol=1, border=NA, box.cex=cex.exp, text.width=.3))
+     LegendFig(x=.35, xjust=.5, y=.5, yjust=.5, title="Carbon type", legend=x, fill=colors.C[x], ncol=2, border=NA, box.cex=cex.exp))
+dev.off()
+
+pdf(FilePath("plot_props_2"), width=10.5, height=2.5)
+layout(matrix(1:5, ncol=5, byrow=TRUE), c(rep(1, 4), .7))
+Parset()
+i <- 1
 ##
 for(.var in c("O/C", "H/C", "N/C")) {
   .table <- filter(atomr, variable==.var)
@@ -145,7 +151,10 @@ barplot(.mat, ylim=ylims[["OM/OC"]], yaxt="n", col=colors.FG[Relabel(rownames(.m
 mtext("OM/OC", 3)
 yval <- seq(0, par("usr")[4], .2)
 axis(2, yval, sprintf("%.1f", yval+1), cex.axis=1.4)
-mtext(c("Ratio", "Recovery fraction"), 2, adj=c(.24, .8), outer=TRUE, las=0)
+## mtext(c("Ratio", "Recovery fraction"), 2, adj=c(.24, .8), outer=TRUE, las=0)
+mtext("Ratio", 2, outer=TRUE, las=0, line=.5)
+with(list(x=Relabel(levels(omoc$group),labels.FG)),
+     LegendFig(x=.1, xjust=0.5, y=.5, yjust=.5, title="FG", legend=x, fill=colors.FG[x], ncol=1, border=NA, box.cex=cex.exp, text.width=.3))
 dev.off()
 
 ## -----------------------------------------------------------------------------
@@ -156,7 +165,7 @@ osc <- SelectCase(merged.osc) %>%
 
 osc$index <- seq(nrow(osc))
 
-pdf("outputs/production_fig_OSC.pdf", width=7, height=5)
+pdf(FilePath("plot_osc_f"), width=7, height=5)
 par(mfrow=c(1,1), cex=1.2)
 Parset()
 with(osc, {

@@ -29,7 +29,7 @@ decisions <- as.list(ReadFile("example_1"))
 ff <- list.files("outputs", "lambdaC_values.+\\.csv$", full=TRUE)
 names(ff) <- sub(".+(set[0-9])(_collapsed)?\\.csv", "\\1\\2", basename(ff))
 
-lambdaC <- readRDS("outputs/lambdaC_array.rds")
+lambdaC <- ReadFile("lambdaC_array")
 
 ## -----------------------------------------------------------------------------
 
@@ -104,7 +104,7 @@ ex <- .2
 ggp <- ggplot(tables)+
   ## geom_hline(yintercept=seq(1-ex, 1+ex, .05), linetype=2, size=.2, color="gray")+
   geom_hline(yintercept=1, size=.2, color="gray")+
-  geom_line(aes(time, value, color=meas, linetype=meas), size=1.5)+
+  geom_line(aes(time, value, color=meas, linetype=meas), size=.8)+
   facet_wrap(~method)+
   lims(y=1+ex*c(-1,1))+
   labs(x="Hour", y=expression("Ratio,"~hat(italic(n))[C]^"*"/ italic(n)[C]^"*"))+
@@ -114,7 +114,7 @@ ggp <- ggplot(tables)+
   theme(strip.background = element_blank(),
         strip.text.x = element_blank())
 
-pdf("outputs/nC_recovery_tseries.pdf", width=6, height=5)
+pdf(FilePath("plot_nC_recovery"), width=6, height=5)
 print(ggp)
 dev.off()
 

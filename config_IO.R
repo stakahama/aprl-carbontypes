@@ -1,7 +1,7 @@
 
 FilePath <- function(f) {
   filelist <- c(
-    ##
+    ## -----------------------------------------------------------------------------
     ## "mcmmass"="data-raw/^mcm_.+_mass\\.txt$",
     ## "simpol"="data/merged_SIMPOLgroups.csv",
     ## "fulltable"="data/merged_MCMGroups_atomfulltable.csv",
@@ -11,6 +11,7 @@ FilePath <- function(f) {
     ## "molecattr"="data/merged_molec_attributes.csv",
     ## "matrices"="data/merged_matrices.rda",
     ## "matrices_2"="data/merged_matrices_2.rda",
+    ## -----------------------------------------------------------------------------
     "mcmmass"="data-raw/^mcm_apinene_mass\\.txt$",
     "simpol"="data/apinene_SIMPOLgroups.csv",
     "fulltable"="data/apinene_MCMGroups_atomfulltable.csv",
@@ -20,11 +21,12 @@ FilePath <- function(f) {
     "molecattr"="data/apinene_molec_attributes.csv",
     "matrices"="data/apinene_matrices.rda",
     "matrices_2"="data/apinene_matrices_2.rda",
-    ##
+    ## -----------------------------------------------------------------------------
     "svoc"="inputs/SVOCs.json",
     "clabels"="inputs/clabels.json",
     "meas"="inputs/meas_FGs.json",
     "example_1"="inputs/example_1.json",
+    ## -----------------------------------------------------------------------------
     ## lambdaC
     "plot_ctype_fit"="outputs/lambdaC_ctype_%s.pdf",
     "plot_nC_fit"="outputs/lambdaC_nC_%s.pdf",
@@ -42,20 +44,37 @@ FilePath <- function(f) {
     "plot_ctype_tseries"="outputs/apinene_ctype_tseries.pdf",
     "plot_OSC_tseries"="outputs/apinene_OSC_tseries.pdf",
     "plot_compound_abundance"="outputs/apinene_compound_abundance.pdf",
-    ##
+    ## nC
     "plot_compound_nC"="outputs/nC_compound.pdf",
     "plot_nC_cumsum"="outputs/nC_apinene_cumsum.pdf",
-    ##
-    "lambdaC_coef_errorbars"="outputs/lambdaC_coef_errorbars.pdf",
-    "lambdaC_coef_nominal"="outputs/lambdaC_coef_nominal.csv",
-    "lambdaC_coef_actual"="outputs/lambdaC_coef_actual.csv",
+    ## nC (2)
+    "plot_nC_tseries"="outputs/nC_tseries_estimated.pdf",
+    ## properties
     "plot_props"="outputs/props_%s.pdf",
     "plot_props_scatter"="outputs/props_scatter_%s.pdf",
     "props_file"="outputs/propsfile_%s.rds",
     "plot_props_cumsum"="outputs/props_cumsum_%s.pdf",
     "tables_props_cumsum"="outputs/props_cumsum_%s.rds",
-    ##
-    "plot_nC_tseries"="outputs/nC_tseries_estimated.pdf",
+    ## -----------------------------------------------------------------------------
+    ## lambdaC (f)
+    "lambdaC_coef_errorbars"="outputs/lambdaC_coef_errorbars.pdf",
+    "lambdaC_coef_nominal"="outputs/lambdaC_coef_nominal.csv",
+    "lambdaC_coef_actual"="outputs/lambdaC_coef_actual.csv",
+    "lambdaC_coef_actual_f"="outputs/lambdaC_coef_actual.rds",
+    "lambdaC_tseries"="outputs/lambdaC_values_tseries.csv",
+    "lambdaC_array"="outputs/lambdaC_array.rds",
+    ## properties (f)
+    "plot_props_1"="outputs/production_fig_props_1.pdf",
+    "plot_props_2"="outputs/production_fig_props_2.pdf",
+    "plot_osc_f"="outputs/production_fig_OSC.pdf",
+    "plot_osc_distr"="outputs/OSC_distr_meas.pdf",
+    ## nC (f)
+    "plot_nC_est"="outputs/nC_est_scatterplot.pdf",
+    "plot_nC_recovery"="outputs/nC_recovery_tseries.pdf",
+    ## nC unc (f)
+    "plot_nC_unc"="outputs/nC_unc_deltas.pdf",
+    ## Sax (f)
+    "plot_Sax"="outputs/fig_Sax.pdf",
     ##
     "lastline"=NA
   )
