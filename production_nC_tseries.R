@@ -83,7 +83,7 @@ ggp <- ggplot(tables)+
 ## dev.off()
 
 methods <- c("count", "solve", "fit", "nominal")
-tables$method <- factor(tables$method, methods, toupper(methods))
+tables$method <- factor(tables$method, methods, labels.method[methods]) #toupper(methods))
 tables$meas <- with(tables, factor(meas, unique(meas), Capitalize(unique(meas))))
 
 ## another viable option:
@@ -117,4 +117,3 @@ ggp <- ggplot(tables)+
 pdf(FilePath("plot_nC_recovery"), width=6, height=5)
 print(ggp)
 dev.off()
-

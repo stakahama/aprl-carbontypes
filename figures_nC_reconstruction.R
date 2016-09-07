@@ -43,7 +43,8 @@ for(.meas in names(measlist)) {
 }
 out <- ldply(out, .id="meas")
 
-levels(out$method) <- toupper(levels(out$method))
+## levels(out$method) <- toupper(levels(out$method))
+levels(out$method) <- labels.method[levels(out$method)]
 levels(out$meas) <- Capitalize(levels(out$meas))
 
 table <- left_join(out,
@@ -69,6 +70,7 @@ stats.formatted$cor <- sprintf("italic(r) == %.2f", stats$cor)
 
 grid <- do.call(expand.grid, lapply(out[c("method", "meas")], levels))
 grid$letter <- sprintf("%s)", letters[seq(nrow(grid))])
+
 
 yoffset <- 1.25
 ggp <- ggplot(table)+

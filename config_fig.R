@@ -61,6 +61,13 @@ labels.FG <- c(
   "aromatic CH" = "rCH"
 )
 
+labels.method <- c( # export_lambdaC.R, production_nC_tseries.R, figures_nC_reconstruction.R
+  "count"="COUNT",
+  "solve"="COMPOUND",
+  "fit"="MIXTURE",
+  "nominal"="NOMINAL"
+)
+
 Relabel <- function(x, new)
   ifelse(x %in% names(new), new[x], x)
 

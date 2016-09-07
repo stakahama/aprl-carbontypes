@@ -61,8 +61,8 @@ wf <- dcast(dfm %>% filter(!fixed) %>% select(meas, method, group, text),
   mutate(meas=factor(meas), method=factor(method, method.order)) %>%
   arrange(meas, method)
 
+levels(wf$method) <- labels.method[levels(wf$method)] #toupper(levels(wf$method))
 levels(wf$meas) <- Capitalize(levels(wf$meas))
-levels(wf$method) <- toupper(levels(wf$method))
 
 print(xtable(wf[,c("meas", "method", "alkane CH", "alcohol", "organonitrate", "alkene CH", "hydroperoxide")]),
       include.rownames=FALSE, sanitize.text.function = identity)
