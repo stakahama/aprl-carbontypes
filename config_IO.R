@@ -75,6 +75,9 @@ FilePath <- function(f) {
     "plot_nC_unc"="outputs/nC_unc_deltas.pdf",
     ## Sax (f)
     "plot_Sax"="outputs/fig_Sax.pdf",
+    ## nC_grid (f)
+    "plot_nCgrid_ctype"="outputs/fig_nCgrid_ctype.pdf",
+    "plot_nCgrid_fg"="outputs/fig_nCgrid_fg.pdf",
     ##
     "lastline"=NA
   )

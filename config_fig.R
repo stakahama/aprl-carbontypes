@@ -58,7 +58,17 @@ labels.FG <- c(
   "carboxylic acid"="COOH",
   "organonitrate"="CONO2",
   "alkene CH" = "eCH",
-  "aromatic CH" = "rCH"
+  "aromatic CH" = "rCH",
+  ##
+  "carbonylperoxyacid"="carbonyl peroxy acid",
+  "carbonylperoxyacid radical"="carbonyl peroxy acid (*)",
+  "carboxylic radical"="carboxyl (*)",
+  "oxy radical"="alkoxyl (*)",
+  "peroxy radical"="peroxyl (*)",
+  "C non quaternary"="tertiary sp2 carbon",
+  "C=O-O group no H"="R2C=O-O",
+  "C=O-O group single H"="RHC=O-O",
+  "C=O-O group two H"="H2C=O-O"
 )
 
 labels.method <- c( # export_lambdaC.R, production_nC_tseries.R, figures_nC_reconstruction.R
