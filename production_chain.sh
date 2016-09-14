@@ -6,7 +6,7 @@ rm outputs/lambdaC_*
 Rscript --vanilla select_SVOCs.R
 Rscript --vanilla select_MCM.R # fig 1 (apinene_ctype_tseries.pdf), fig 2 (apinene_compound_abundance.pdf)
 
-Rscript --vanilla figures_nC_cumsum.R # fig 3 (nC_apinene_cumsum.pdf)
+# Rscript --vanilla figures_nC_cumsum.R # fig 3 (nC_apinene_cumsum.pdf)
 
 Rscript --vanilla production_lambdaC_compounds.R
 Rscript --vanilla production_lambdaC_tseries.R

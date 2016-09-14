@@ -51,6 +51,8 @@ colors.FG <- c(
 colors.OSC <- setNames(tail(colorRampPalette(c("darkorange", "lightgray", "darkblue"))(9), -1),
                        seq(-4, 3))
 
+colors.set <- setNames(RColorBrewer::brewer.pal(3, "Set1"), c("Set1", "Set2", "Full"))
+
 labels.FG <- c(
   "alkane CH"="aCH",
   "alcohol"="aCOH",

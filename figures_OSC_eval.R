@@ -71,7 +71,6 @@ Addbars <- function(height, at, col, ...) {
 levels(nC$meas) <- Capitalize(levels(nC$meas))
 
 mat <- acast(nC %>% filter(phase=="aer"), meas~OSC, sum, value.var="nC")
-colors.sets <- setNames(brewer.pal(8, "Set1"), rownames(mat))
 osc$index <- seq_along(osc$meas)
 osc$meas <- Capitalize(osc$meas)
 yval <- as.integer(colnames(mat))
@@ -92,14 +91,14 @@ i <- 1
 plot.new()
 plot.window(c(0, xmax), ExpandLim(ylim), xaxs="i")
 ypos <- outer(seq(min(yval), max(yval)), .35*c(-1,1), "+") # fixed
-Addbars(mat, at=ypos, col=colors.sets)
+Addbars(mat, at=ypos, col=colors.set)
 axis(1)
 axis(2, las=1)
 box()
 ## legend(par("usr")[2], par("usr")[4], xjust=0, yjust=1, xpd=NA,
 ##        legend=rownames(mat), fill=col, border=NA, bty="n")
 legend(par("usr")[2], par("usr")[4], xjust=1, yjust=1, xpd=NA,
-       legend=rownames(mat), fill=colors.sets[rownames(mat)], border=NA, bty="n")
+       legend=rownames(mat), fill=colors.set[rownames(mat)], border=NA, bty="n")
 ## mtext(expression(italic(n)[C]~(mu*"mole"/m^3)), 1, line=par("mgp")[1])
 mtext("Carbon fraction", 1, line=par("mgp")[1])
 mtext(expression(OS[C]), 3)

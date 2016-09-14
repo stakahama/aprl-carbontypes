@@ -22,7 +22,7 @@ clabels <- ReadFile("clabels")
 carbon.attr <- ReadFile("carbonattr")
 molec.moles <- ReadMicromolm3(FilePath("tseries_aer"))
 decisions <- as.list(ReadFile("example_1"))
-lambdaC <- list(actual=ReadFile("lambdaC_coef_actual"))
+lambdaC <- list(actual=ReadFile("lambdaC_coef_actual_f"))
 
 ## -----------------------------------------------------------------------------
 

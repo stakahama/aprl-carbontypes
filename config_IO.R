@@ -24,6 +24,7 @@ FilePath <- function(f) {
     ## -----------------------------------------------------------------------------
     "svoc"="inputs/SVOCs.json",
     "clabels"="inputs/clabels.json",
+    "fgorder"="inputs/fgorder.json",
     "meas"="inputs/meas_FGs.json",
     "example_1"="inputs/example_1.json",
     ## -----------------------------------------------------------------------------

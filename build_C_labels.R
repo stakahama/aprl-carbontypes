@@ -24,12 +24,16 @@ decisions <- as.list(ReadFile("example_1"))
 ## -----------------------------------------------------------------------------
 
 ## examp <- Slice(do.call(`+`, molec.moles), decisions$hour)
-examp <- t(sapply(molec.moles, Slice, decisions$hour))
+examp <- t(sapply(molec.moles, Slice, decisions$hour))["aer",,drop=FALSE]
 
 ix <- intersect(colnames(examp), rownames(Y))
-
 nC <- sort(colSums(examp[,ix] %*% Y[ix,]), decreasing=TRUE)
 
 clabels <- setNames(seq_along(nC), names(nC))
-
 cat(toJSON(clabels), file=FilePath("clabels"))
+
+ix <- intersect(colnames(examp), rownames(X))
+fg <- colSums(examp[,ix] %*% X[ix,])
+
+order.FG <- setNames(seq_along(fg), names(fg)[order(fg, decreasing=TRUE)])
+cat(toJSON(order.FG), file=FilePath("fgorder"))
