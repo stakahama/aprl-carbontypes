@@ -5,9 +5,12 @@
     },
     "lambdaC": {
 	"set1": ["alkane CH", "carboxylic acid", "formic acid", "ketone", "aldehyde", "formaldehyde", "ester", "alcohol", "organonitrate"],
-	"set2": ["alkane CH", "carboxylic acid", "formic acid", "ketone", "aldehyde", "formaldehyde", "ester", "alcohol", "organonitrate", "phenol","alkene CH","aromatic CH", "carbonylperoxyacid", "hydroperoxide", "peroxyacylnitrate"]
+	"set2": ["alkane CH", "carboxylic acid", "formic acid", "ketone", "aldehyde", "formaldehyde", "ester", "alcohol", "phenol", "organonitrate", "alkene CH", "aromatic CH", "hydroperoxide", "peroxyacylnitrate"]
     },
     "collapse": {
 	"carbonyl": ["ketone", "aldehyde"]
-    }
+    },
+    "comment": [
+	"removed from lambdaC$set2: carbonylperoxyacid"
+    ]
 }

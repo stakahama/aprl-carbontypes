@@ -12,7 +12,7 @@ FilePath <- function(f) {
     ## "matrices"="data/merged_matrices.rda",
     ## "matrices_2"="data/merged_matrices_2.rda",
     ## -----------------------------------------------------------------------------
-    "mcmmass"="data-raw/^mcm_apinene_mass\\.txt$",
+    "mcmmass"="inputs/^mcm_apinene_mass\\.txt$",
     "simpol"="data/apinene_SIMPOLgroups.csv",
     "fulltable"="data/apinene_MCMGroups_atomfulltable.csv",
     "adjacent"="data/apinene_adjacent_atoms.csv",
