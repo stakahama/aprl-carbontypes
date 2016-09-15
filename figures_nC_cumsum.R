@@ -68,7 +68,6 @@ nC.s$clabel <- factor(nC.s$clabel, clabel.levs)
 ## -----------------------------------------------------------------------------
 
 Psi <- Theta %*% t(Lambda[heteroatoms,])
-rownames(Psi) <- clabels[rownames(Psi)]
 cOM <- (am["C"] + Psi %*% am[heteroatoms])[,1]
 
 ## -----------------------------------------------------------------------------
