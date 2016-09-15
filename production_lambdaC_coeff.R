@@ -43,8 +43,7 @@ df2 <- ldply(f2, function(f, x=1.96) {
   cc
 }, .id="meas")
 
-df3 <- melt(read.csv(f3, check.names=FALSE),
-            id.vars="meas", variable.name="group", value.name="Estimate")
+df3 <- melt(f3, id.vars="meas", variable.name="group", value.name="Estimate")
 
 uniq <- UniqueMapping(Theta)
 

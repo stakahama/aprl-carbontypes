@@ -7,7 +7,7 @@ library(reshape2)
 library(ggplot2)
 library(RColorBrewer)
 theme_set(theme_bw())
-## PopulateEnv("IO", "config_IO.R")
+PopulateEnv("IO", "config_IO.R")
 PopulateEnv("fig", "config_fig.R")
 ## PopulateEnv("mylib", c("lib/lib_units.R", "lib/lib_carbonprod.R", "lib/lib_metrics.R", "lib/lib_units.R"))
 GGTheme()
@@ -19,6 +19,9 @@ OCr <- seq(0, 1.2, .1)
 unc <- .1
 
 ## -----------------------------------------------------------------------------
+
+f <- function(OMOC, delta) 1-1/(1+delta)-1/OMOC+1/(OMOC*(1+delta))
+f2 <- function(OCr, delta) 1-1/(1+delta)
 
 if(FALSE) {
 
@@ -45,12 +48,10 @@ if(FALSE) {
   delta <- c(0.05, .1)
   matplot(OMOC, 1-(1+outer(OMOC-1, 1+delta, "/"))/OMOC, type="l")
 
-  f <- function(OMOC, delta) 1-1/(1+delta)-1/OMOC+1/(OMOC*(1+delta))
   matplot(OMOC, outer(OMOC, delta, f), type="l")
 
   matplot(OCr, 1-outer(OCr, 1+delta, "/")/OCr, type="l", ylim=c(0, .1))
 
-  f2 <- function(OCr, delta) 1-1/(1+delta)
   matplot(OCr, outer(OCr, delta, f2), type="l", ylim=c(0, .1))
 
 }

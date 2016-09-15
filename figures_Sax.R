@@ -212,7 +212,7 @@ text(positions, par("usr")[3]-par("cxy")[2]*.5, adj=c(1, .5), srt=30,
 axis(2)
 box()
 text(c(2.5, 7.5), par("usr")[4]-par("cxy")[2]*.5, adj=c(.5, 1), c(expression(underline("4h")), expression(underline("21h"))), xpd=NA, cex=1.1)
-title(ylab=expression(bar(OS)[C]))
+title(ylab=expression(bar(OS)[C]^"*"))
 text(par("usr")[1], par("usr")[4]+par("cxy")[2]*.3, adj=c(0, 0), xpd=NA, "c)", cex=1.2)
 
 dev.off()
