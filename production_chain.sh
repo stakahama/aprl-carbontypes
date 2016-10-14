@@ -7,7 +7,7 @@ Rscript --vanilla select_example_MCM.R # fig (apinene_ctype_tseries.pdf), fig (a
 
 ## -----------------------------------------------------------------------------
 
-## this is necessary
+## clean directory
 rm outputs/lambdaC_*
 
 Rscript --vanilla production_lambdaC_compounds.R

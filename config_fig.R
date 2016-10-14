@@ -80,6 +80,12 @@ labels.method <- c( # export_lambdaC.R, production_nC_tseries.R, figures_nC_reco
   "nominal"="NOMINAL"
 )
 
+labels.meas <- c(
+  "set1"="Set1",
+  "set2"="Set2",
+  "full"="Full"
+)
+
 Relabel <- function(x, new)
   ifelse(x %in% names(new), new[x], x)
 

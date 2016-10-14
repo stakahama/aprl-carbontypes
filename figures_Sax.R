@@ -40,6 +40,14 @@ lambdaC <- list(
 SweepLambda <- function(n, Lambda)
   colSums(sweep(Lambda, 2, n, "*"))
 
+ProdInner <- function(X, Y) {
+  stopifnot(length(dim(X))==2 && length(dim(Y))==2 && dim(X)[2]==dim(Y)[1])
+  arr <- array(0, c(dim(X), dim(Y)[2]), dimnames=c(dimnames(X), dimnames(Y)[2]))
+  for(j in seq(dim(arr)[2]))
+    arr[,j,] <- outer(X[,j], Y[j,], "*")
+  arr
+}
+
 ## -----------------------------------------------------------------------------
 
 ## *** prepare obs and sim data ***
@@ -58,21 +66,6 @@ for(.sample in samples) {
 
 ## -----------------------------------------------------------------------------
 
-## *** obs ***
-
-j <- colnames(obs)
-atomr.obs <- list()
-omocm1.obs <- list()
-osc.obs <- list()
-for(.x in names(lambdaC)) {
-  nC <- (obs %*% lambdaC[[.x]][j])[,1]
-  atomr.obs[[.x]] <- obs %*% t(Lambda[,j]) / nC
-  omocm1.obs[[.x]] <- t(apply(obs, 1, SweepLambda, am[rownames(Lambda)]*Lambda[,j])) / (nC*am["C"])
-  osc.obs[[.x]] <- (obs %*% zFG[j])[,1]/nC
-}
-
-## -----------------------------------------------------------------------------
-
 ## *** sim ***
 
 cmpds <- intersect(colnames(sim), rownames(Y))
@@ -80,24 +73,63 @@ fgsets <- list(set1=intersect(meas.set1, colnames(Theta)), full=colnames(Theta))
 zeta <- with(unique(subset(carbon.attr,,c(ctype, OSC))), setNames(OSC, ctype))
 
 atomr.sim <- list()
+atomr.p.sim <- list()
+nC.sim.saved <- list()
 omocm1.sim <- list()
 osc.sim <- list()
-for(.x in names(fgsets)) {
-  j <- fgsets[[.x]]
+for(.elem in names(fgsets)) {
+  j <- fgsets[[.elem]]
   k <- names(which(apply(Theta[,j] > 0, 1, any)))
   ctype.sim <- sim[,cmpds] %*% Y[cmpds,k]
   nC <- rowSums(ctype.sim)
-  atomr.sim[[.x]] <- ctype.sim %*% Theta[k,j] %*% t(Lambda[,j]) / nC
+  nC.sim.saved[[.elem]] <- nC
+  atomr.sim[[.elem]] <- ctype.sim %*% Theta[k,j] %*% t(Lambda[,j]) / nC
+  atomr.p.sim[[.elem]] <- ProdInner(ctype.sim %*% Theta[k,j], t(Lambda[,j])) / nC
   tmp <- t(apply(ctype.sim %*% Theta[k,j], 1, SweepLambda, am[rownames(Lambda)] *Lambda[,j])) / (nC*am["C"])
   tmp[,"CO"] <- tmp[,"CO"]+tmp[,"aldehyde"]
-  omocm1.sim[[.x]] <- tmp[,-grep("aldehyde", colnames(tmp))]
-  osc.sim[[.x]] <- (ctype.sim %*% zeta[k])[,1]/nC
+  omocm1.sim[[.elem]] <- tmp[,-grep("aldehyde", colnames(tmp))]
+  osc.sim[[.elem]] <- (ctype.sim %*% zeta[k])[,1]/nC
 }
 
 atomr.apin <- local({
   nC <- sum(Y["APINENE",])
   (Y["APINENE",] %*% Theta %*% t(Lambda))[1,]/nC
 })
+
+## -----------------------------------------------------------------------------
+
+## *** obs ***
+
+j <- colnames(obs)
+atomr.obs <- list()
+atomr.p.obs <- list()
+nC.obs.saved <- list()
+omocm1.obs <- list()
+osc.obs <- list()
+for(.elem in names(lambdaC)) {
+  nC <- (obs %*% lambdaC[[.elem]][j])[,1]
+  nC.obs.saved[[.elem]] <- nC
+  atomr.obs[[.elem]] <- obs %*% t(Lambda[,j]) / nC
+  atomr.p.obs[[.elem]] <- ProdInner(obs, t(Lambda[,j])) / nC
+  omocm1.obs[[.elem]] <- t(apply(obs, 1, SweepLambda, am[rownames(Lambda)]*Lambda[,j])) / (nC*am["C"])
+  osc.obs[[.elem]] <- (obs %*% zFG[j])[,1]/nC
+}
+
+## -----------------------------------------------------------------------------
+
+nCr <- with(nC.sim.saved, set1/full)
+
+.elem <- "set1"
+atomr.sim[[.elem]] <- atomr.sim[[.elem]] * nCr
+atomr.p.sim[[.elem]] <- atomr.p.sim[[.elem]] * nCr
+omocm1.sim[[.elem]] <- omocm1.sim[[.elem]] * nCr
+osc.sim[[.elem]] <- osc.sim[[.elem]] * nCr
+
+.elem <- "new"
+atomr.obs[[.elem]] <- atomr.obs[[.elem]] * nCr
+atomr.p.obs[[.elem]] <- atomr.p.obs[[.elem]] * nCr
+omocm1.obs[[.elem]] <- omocm1.obs[[.elem]] * nCr
+osc.obs[[.elem]] <- osc.obs[[.elem]] * nCr
 
 ## -----------------------------------------------------------------------------
 ## -----------------------------------------------------------------------------
@@ -122,18 +154,20 @@ plot.new()
 plot.window(xlim=c(0, 1.2), ylim=c(0, 2))#, xaxs="i", yaxs="i")
 for(.slope in c(0, -1, -2))
   abline(2, .slope, lty=2)
-points(atomr.apin["O"], atomr.apin["H"], pch=18, cex=1.6, xpd=NA)
-points(atomr.sim[["set1"]][,"O"], atomr.sim[["set1"]][,"H"], pch=15, col=colors.sample, cex=pt.cex)
-points(atomr.sim[["full"]][,"O"], atomr.sim[["full"]][,"H"], pch=17, col=colors.sample, cex=pt.cex)
+points(atomr.apin["O"], atomr.apin["H"], pch=8, cex=1.1, lwd=2, xpd=NA)
+points(atomr.sim[["set1"]][,"O"], atomr.sim[["set1"]][,"H"], pch=17, col=colors.sample, cex=pt.cex)
+points(atomr.sim[["full"]][,"O"], atomr.sim[["full"]][,"H"], pch=18, col=colors.sample, cex=pt.cex+.3)
 points(atomr.obs[["old"]][,"O"], atomr.obs[["old"]][,"H"], col=colors.sample, cex=pt.cex, lwd=1.5)
-points(atomr.obs[["new"]][,"O"], atomr.obs[["new"]][,"H"], pch=21, col="white", bg=colors.sample, cex=pt.cex)
+points(atomr.obs[["new"]][,"O"], atomr.obs[["new"]][,"H"], pch=21, col="white", bg=colors.sample, cex=pt.cex+.2)
 ## arrows(atomr.obs[["old"]][,"O"], atomr.obs[["old"]][,"H"], #col=colors.sample,
 ##        atomr.obs[["new"]][,"O"], atomr.obs[["new"]][,"H"],
 ##        pch=19, code=2, angle=45, length=0.15)
 axis(1)
 axis(2)
 box()
-legend("bottomleft", pch=c(18, 1, 19, 15, 17), pt.cex=c(1.4, 1, 1, 1, 1),
+legend("bottomleft", pch=c(8, 1, 19, 17, 18),
+       pt.cex=c(1, 1, 1, 1, 1.3),
+       pt.lwd=c(2, 1, 1, 1, 1),
        legend=c(expression(alpha*"-pinene"), labels.est),
        bty="n", cex=.95)
 legend(.5, par("usr")[3], xjust=0, yjust=0, legend=c("4h", "21h"), border=NA, fill=colors.sample, bty="n")
@@ -162,7 +196,7 @@ early <- samples[1]
 late <- samples[2]
 dx <- .45
 plot.new()
-plot.window(c(0, 10), c(0, 1.4), yaxs="i")
+plot.window(c(0, 10), c(0, 1.2), yaxs="i")
 positions <- c()
 Stackrect(1, omocm1.obs[["old"]][early,],  border=NA)
 Stackrect(2, omocm1.obs[["new"]][early,],  border=NA)
@@ -183,6 +217,7 @@ text(c(2.5, 7.5), par("usr")[4]-par("cxy")[2]*.5, adj=c(.5, 1), c(expression(und
 title(ylab="OM/OC", cex.lab=1.2)
 text(par("usr")[1], par("usr")[4]+par("cxy")[2]*.3, adj=c(0, 0), xpd=NA, "b)", cex=1.2)
 
+## *** OSc ***
 
 htype <- function(x, y, ...) {
   positions <<- c(positions, x)
@@ -212,7 +247,7 @@ text(positions, par("usr")[3]-par("cxy")[2]*.5, adj=c(1, .5), srt=30,
 axis(2)
 box()
 text(c(2.5, 7.5), par("usr")[4]-par("cxy")[2]*.5, adj=c(.5, 1), c(expression(underline("4h")), expression(underline("21h"))), xpd=NA, cex=1.1)
-title(ylab=expression(bar(OS)[C]*"*"))
+title(ylab=expression(bar(OS)[C]))
 text(par("usr")[1], par("usr")[4]+par("cxy")[2]*.3, adj=c(0, 0), xpd=NA, "c)", cex=1.2)
 
 dev.off()
@@ -220,3 +255,13 @@ dev.off()
 ## -----------------------------------------------------------------------------
 ## -----------------------------------------------------------------------------
 ## -----------------------------------------------------------------------------
+
+1+rowSums(omocm1.obs[["new"]])
+1+rowSums(omocm1.sim[["set1"]])
+
+atomr.obs[["new"]][,"O"]
+atomr.sim[["set1"]][,"O"]
+
+rowSums(atomr.p.obs[["new"]][,,"O"])+
+  rowSums(atomr.p.sim[["full"]][,c("hydroperoxide", "peroxyacyl nitrate"),"O"])
+

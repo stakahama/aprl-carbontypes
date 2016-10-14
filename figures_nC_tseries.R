@@ -117,3 +117,5 @@ ggp <- ggplot(tables)+
 pdf(FilePath("plot_nC_recovery"), width=6, height=5)
 print(ggp)
 dev.off()
+
+## tables %>% group_by(method, meas) %>% do(data.frame(value=round(with(., range(value))-1, 2)))

@@ -25,7 +25,11 @@ ppb2micromolm3 <- function(xi, p=1, T=298.15) {
   micro * 1e-9 * xi * p/(R*T)
 }
 
-ppb2microgm3 <- function(xi, mw) {
+ppb2microgm3 <- function(xi, mw, ...) {
   ## ppb (\xi) to micorgrams per cubic meter
-  mw[names(xi)] * ppb2micromol(xi)
+  if(is.null(names(xi))) {
+    warning("missing names(xi)")
+    names(mw) <- names(xi) <- seq_along(xi)
+  }
+  mw[names(xi)] * ppb2micromolm3(xi, ...)
 }

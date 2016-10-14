@@ -48,9 +48,6 @@ mass <- mass %>% filter(clabel %in% clabel.levs) %>%
 ##   geom_bar(aes(meas, value, fill=clabel), stat="identity")+
 ##   facet_grid(.~variable)
 
-meas.levs <- with(mass, setNames(sort(unique(meas)),  Capitalize(sort(unique(meas)))))
-mass$meas <- factor(mass$meas, meas.levs, names(meas.levs))
-
 ## -----------------------------------------------------------------------------
 
 df <- SelectCase(merged.g)
@@ -72,8 +69,17 @@ atomr <- atomr %>% filter(group %in% group.levs) %>%
 omoc <- omoc %>% filter(group %in% group.levs) %>%
   mutate(group=factor(factor(group, group.levs)))
 
-atomr$meas <- factor(atomr$meas, meas.levs, names(meas.levs))
-omoc$meas <- factor(omoc$meas, meas.levs, names(meas.levs))
+## -----------------------------------------------------------------------------
+
+
+## meas.levs <- with(mass, setNames(sort(unique(meas)),  Capitalize(sort(unique(meas)))))
+## mass$meas <- factor(mass$meas, meas.levs, names(meas.levs))
+## atomr$meas <- factor(atomr$meas, meas.levs, names(meas.levs))
+## omoc$meas <- factor(omoc$meas, meas.levs, names(meas.levs))
+
+mass$meas <- factor(mass$meas, names(labels.meas), labels.meas)
+atomr$meas <- factor(atomr$meas, names(labels.meas), labels.meas)
+omoc$meas <- factor(omoc$meas, names(labels.meas), labels.meas)
 
 ## -----------------------------------------------------------------------------
 
@@ -163,7 +169,9 @@ osc <- SelectCase(merged.osc) %>%
    filter((meas=="full" & method=="true") | (meas!="full" & method=="approx")) %>%
    mutate(method=NULL)
 
-osc$index <- seq(nrow(osc))
+extra <- setdiff(osc$meas, names(labels.meas))
+osc$meas <- factor(osc$meas, c(names(labels.meas), extra), c(labels.meas, extra))
+osc$index <- unclass(osc$meas)#seq(nrow(osc))
 
 pdf(FilePath("plot_osc_f"), width=7, height=5)
 par(mfrow=c(1,1), cex=1.2)
@@ -181,7 +189,7 @@ with(osc, {
   axis(4,,FALSE)
   box()
   text(index, par("usr")[3]-par("cxy")[2]*.3, adj=c(1, .5), xpd=NA, srt=30,
-       ifelse(meas=="AMS", expression(2*O/C-H/C), meas))
+       ifelse(meas=="AMS", expression(2*O/C-H/C), as.character(meas)))
   mtext(expression(bar(OS)[C]), 2, las=0, line=par("mgp")[1])
 })
 dev.off()

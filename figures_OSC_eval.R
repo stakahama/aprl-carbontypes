@@ -68,11 +68,12 @@ Addbars <- function(height, at, col, ...) {
  }
 }
 
-levels(nC$meas) <- Capitalize(levels(nC$meas))
+levels(nC$meas) <- labels.meas[levels(nC$meas)] #Capitalize(levels(nC$meas))
 
 mat <- acast(nC %>% filter(phase=="aer"), meas~OSC, sum, value.var="nC")
-osc$index <- seq_along(osc$meas)
-osc$meas <- Capitalize(osc$meas)
+extra <- setdiff(osc$meas, names(labels.meas))
+osc$meas <- factor(osc$meas, c(names(labels.meas), extra), c(labels.meas, extra))#Capitalize(osc$meas)
+osc$index <- unclass(osc$meas) #seq_along(osc$meas)
 yval <- as.integer(colnames(mat))
 
 mat <- mat/sum(mat)
@@ -120,8 +121,8 @@ with(osc, {
   axis(4,,FALSE)
   box()
   text(index, par("usr")[3]-par("cxy")[2]*.3, adj=c(1, .5), xpd=NA, srt=30,
-       ifelse(meas=="AMS", expression(2*O/C-H/C), meas))
-  mtext(expression(bar(OS)[C]*"*"), 3)
+       ifelse(meas=="AMS", expression(2*O/C-H/C), as.character(meas)))
+  mtext(expression(bar(OS)[C]), 3)
 })
 text(par("usr")[1], par("usr")[4], adj=c(0, -.3), xpd=NA,
      sprintf("%s)", letters[i]), cex=1.2)
