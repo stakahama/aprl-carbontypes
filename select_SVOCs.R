@@ -1,4 +1,15 @@
 
+################################################################################
+##
+## select_SVOCs.R
+## Author: Satoshi Takahama (satoshi.takahama@epfl.ch)
+## Oct. 2016
+##
+## see LICENSE_GPLv3.txt
+##
+################################################################################
+
+
 options(stringsAsFactors=FALSE)
 
 library(dplyr)

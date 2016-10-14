@@ -1,4 +1,15 @@
 
+################################################################################
+##
+## analysis_ctype_thresh.R
+## Author: Satoshi Takahama (satoshi.takahama@epfl.ch)
+## Oct. 2016
+##
+## see LICENSE_GPLv3.txt
+##
+################################################################################
+
+
 ## evaluation of thresholds for simplification
 
 options(stringsAsFactors=FALSE)

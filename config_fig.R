@@ -1,4 +1,15 @@
 
+################################################################################
+##
+## config_fig.R
+## Author: Satoshi Takahama (satoshi.takahama@epfl.ch)
+## Oct. 2016
+##
+## see LICENSE_GPLv3.txt
+##
+################################################################################
+
+
 GGTheme <- function() {
   ## theme_set(theme_bw())
 
