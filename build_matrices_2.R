@@ -5,7 +5,7 @@
 ## Author: Satoshi Takahama (satoshi.takahama@epfl.ch)
 ## Oct. 2016
 ##
-## see LICENSE_GPLv3.txt
+## license: GNU Public License v3.0 (LICENSE_GPLv3.txt)
 ##
 ################################################################################
 
