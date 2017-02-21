@@ -79,6 +79,7 @@ labels.FG <- c(
   "oxy radical"="alkoxyl (*)",
   "peroxy radical"="peroxyl (*)",
   "C non quaternary"="tertiary sp2 carbon",
+  "Car non quaternary"="aromatic sp2 carbon",
   "C=O-O group no H"="R2C=O-O",
   "C=O-O group single H"="RHC=O-O",
   "C=O-O group two H"="H2C=O-O"
