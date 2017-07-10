@@ -1,8 +1,8 @@
 # APRL Carbontypes
 
-Code to accompany manuscript on carbon type analysis. Submitted to *Atmospheric Chemistry and Physics Discussions* as
+Code to accompany manuscript on carbon type analysis. Submitted to *Atmospheric Chemistry and Physics* as
 
-> Takahama, S. and Ruggeri, G.: Technical Note: Relating functional group measurements to carbon types for improved model-measurement comparisons of organic aerosol composition, Atmos. Chem. Phys. Discuss., doi:10.5194/acp-2016-926, in review, 2016.
+> Takahama, S. and Ruggeri, G.: Technical Note: Relating functional group measurements to carbon types for improved model–measurement comparisons of organic aerosol composition, *Atmos. Chem. Phys.*, 17, 4433–4450, doi:10.5194/acp-17-4433-2017, 2017.
 
 This software is distributed under the GNU Public License (GPLv3).
 
